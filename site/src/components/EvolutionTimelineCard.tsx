@@ -356,7 +356,7 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
                       x2={svgW - padR}
                       y1={yScore(tick)}
                       y2={yScore(tick)}
-                      stroke="#e2e8f0"
+                      stroke="var(--chart-grid, #e2e8f0)"
                       strokeWidth="1"
                     />
                     <text
@@ -376,7 +376,7 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
                     x2={svgW - padR}
                     y1={yPct(tick)}
                     y2={yPct(tick)}
-                    stroke="#e2e8f0"
+                    stroke="var(--chart-grid, #e2e8f0)"
                     strokeWidth="1"
                   />
                   <text
@@ -482,7 +482,7 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
                       cy={cy}
                       r={selected ? 7 : 5}
                       fill={pt.isLive ? '#059669' : '#2563eb'}
-                      stroke="#ffffff"
+                      stroke="var(--surface, #ffffff)"
                       strokeWidth="2"
                     />
                     <text x={cx} y={svgH - 12} textAnchor="middle" className="svg-x-label">
@@ -526,7 +526,7 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
                       cy={yPct(pt.editalCompletionPct)}
                       r={selected ? 6.5 : 4.5}
                       fill="#2563eb"
-                      stroke="#ffffff"
+                      stroke="var(--surface, #ffffff)"
                       strokeWidth="2"
                     />
                     {pt.editalAccuracyPct !== null && (
@@ -535,7 +535,7 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
                         cy={yPct(pt.editalAccuracyPct)}
                         r={selected ? 7 : 5}
                         fill="#059669"
-                        stroke="#ffffff"
+                        stroke="var(--surface, #ffffff)"
                         strokeWidth="2"
                       />
                     )}

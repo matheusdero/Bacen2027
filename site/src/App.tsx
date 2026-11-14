@@ -12,6 +12,7 @@ import {
   Target,
 } from 'lucide-react';
 import { CloudSyncModal } from './components/CloudSyncModal';
+import { DisplayComfortControl } from './components/DisplayComfortControl';
 import { DiscursiveWorkshopView } from './components/DiscursiveWorkshopView';
 import { EditalTrackerView } from './components/EditalTrackerView';
 import { QuestionLabView } from './components/QuestionLabView';
@@ -22,6 +23,7 @@ import { EDITAL_CHECKLIST } from './data/editalChecklist';
 import { QUESTIONS_P1 } from './data/questionsP1';
 import { QUESTIONS_P2 } from './data/questionsP2';
 import { SYLLABUS_TOPICS } from './data/syllabus';
+import { useDisplayComfort } from './hooks/useDisplayComfort';
 import { useGitHubSync } from './hooks/useGitHubSync';
 import { useTrainerState } from './hooks/useTrainerState';
 import { SubjectId } from './types';
@@ -72,6 +74,15 @@ export const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [syncModalOpen, setSyncModalOpen] = useState(false);
+
+  const {
+    settings: comfortSettings,
+    setTheme: setComfortTheme,
+    setBrightness: setComfortBrightness,
+    setWarmth: setComfortWarmth,
+    applyPreset: applyComfortPreset,
+    resetComfort,
+  } = useDisplayComfort();
   const [syllabusSubject, setSyllabusSubject] = useState<SubjectId | 'all'>('all');
   const [syllabusTopicId, setSyllabusTopicId] = useState<string | null>(
     SYLLABUS_TOPICS[0]?.id ?? null
@@ -189,43 +200,54 @@ export const App: React.FC = () => {
             </button>
           </nav>
 
-          <button
-            type="button"
-            className={`user-sync-pill sync-pill-${syncStatus}`}
-            onClick={() => setSyncModalOpen(true)}
-            title="Gerenciar perfil e sincronização em nuvem (GitHub Gist)"
-          >
-            <span className="user-initials">
-              {(profile.candidateName || 'MT')
-                .split(' ')
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((w) => w[0].toUpperCase())
-                .join('')}
-            </span>
-            <span className="user-sync-text">
-              <strong className="user-name-label">{profile.candidateName || 'Matheus Torrente'}</strong>
-              <span className="user-sync-sub">
-                {syncStatus === 'syncing' ? (
-                  <>
-                    <RefreshCw size={11} className="spin-icon" /> Sincronizando...
-                  </>
-                ) : syncStatus === 'synced' ? (
-                  <>
-                    <Cloud size={11} /> Gist OK
-                  </>
-                ) : syncStatus === 'conflict' ? (
-                  'Conflito Sync'
-                ) : syncStatus === 'error' ? (
-                  'Erro Sync'
-                ) : (
-                  <>
-                    <CloudOff size={11} /> Local (Conectar Gist)
-                  </>
-                )}
+          <div className="top-nav-actions">
+            <DisplayComfortControl
+              settings={comfortSettings}
+              onChangeTheme={setComfortTheme}
+              onChangeBrightness={setComfortBrightness}
+              onChangeWarmth={setComfortWarmth}
+              onApplyPreset={applyComfortPreset}
+              onReset={resetComfort}
+            />
+
+            <button
+              type="button"
+              className={`user-sync-pill sync-pill-${syncStatus}`}
+              onClick={() => setSyncModalOpen(true)}
+              title="Gerenciar perfil e sincronização em nuvem (GitHub Gist)"
+            >
+              <span className="user-initials">
+                {(profile.candidateName || 'MT')
+                  .split(' ')
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((w) => w[0].toUpperCase())
+                  .join('')}
               </span>
-            </span>
-          </button>
+              <span className="user-sync-text">
+                <strong className="user-name-label">{profile.candidateName || 'Matheus Torrente'}</strong>
+                <span className="user-sync-sub">
+                  {syncStatus === 'syncing' ? (
+                    <>
+                      <RefreshCw size={11} className="spin-icon" /> Sincronizando...
+                    </>
+                  ) : syncStatus === 'synced' ? (
+                    <>
+                      <Cloud size={11} /> Gist OK
+                    </>
+                  ) : syncStatus === 'conflict' ? (
+                    'Conflito Sync'
+                  ) : syncStatus === 'error' ? (
+                    'Erro Sync'
+                  ) : (
+                    <>
+                      <CloudOff size={11} /> Local (Conectar Gist)
+                    </>
+                  )}
+                </span>
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -338,6 +360,9 @@ export const App: React.FC = () => {
         onToggleAutoSync={toggleAutoSync}
         onDisconnect={disconnectGitHub}
       />
+
+      <div className="comfort-warmth-overlay" aria-hidden="true" />
+      <div className="comfort-dim-overlay" aria-hidden="true" />
     </div>
   );
 };
