@@ -5,6 +5,7 @@ import {
   CloudOff,
   Compass,
   FileEdit,
+  History,
   LayoutDashboard,
   ListChecks,
   RefreshCw,
@@ -19,6 +20,7 @@ import { QuestionLabView } from './components/QuestionLabView';
 import { SimulatorView } from './components/SimulatorView';
 import { SyllabusView } from './components/SyllabusView';
 import { TrainerDashboard } from './components/TrainerDashboard';
+import { CURRENT_RELEASE, VersionHistoryModal } from './components/VersionHistoryModal';
 import { EDITAL_CHECKLIST } from './data/editalChecklist';
 import { QUESTIONS_P1 } from './data/questionsP1';
 import { QUESTIONS_P2 } from './data/questionsP2';
@@ -75,6 +77,7 @@ export const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [versionModalOpen, setVersionModalOpen] = useState(false);
 
   const {
     settings: comfortSettings,
@@ -134,9 +137,20 @@ export const App: React.FC = () => {
               <ShieldCheck size={20} />
             </div>
             <div>
-              <div className="brand-title">BACEN 2027 · Treinador Pessoal</div>
+              <div className="brand-title-row">
+                <div className="brand-title">BACEN 2027 · Treinador Pessoal</div>
+                <button
+                  type="button"
+                  className="version-pill-btn"
+                  onClick={() => setVersionModalOpen(true)}
+                  title="Ver histórico de alterações (Changelog) e versões anteriores"
+                >
+                  <History size={11} />
+                  <span>{CURRENT_RELEASE.id}</span>
+                </button>
+              </div>
               <div className="brand-sub">
-                Cargo 1 · Analista em Economia e Finanças · Base Oficial Cebraspe 2024
+                Cargo 1 · Analista em Economia e Finanças · {CURRENT_RELEASE.edition}
               </div>
             </div>
           </div>
@@ -337,10 +351,20 @@ export const App: React.FC = () => {
       </main>
 
       <footer className="site-footer">
-        <div>
-          Dados reais estruturados a partir dos Editais nº 1 a 10 e Provas P1/P2/P3/P4 do Concurso
-          Banco Central do Brasil 2024 (Cargo 1 — Economia e Finanças). Progresso salvo localmente e
-          sincronizável na nuvem via GitHub Gist Privado.
+        <div className="site-footer-inner">
+          <span>
+            Dados reais estruturados a partir dos Editais nº 1 a 10 e Provas P1/P2/P3/P4 do Concurso
+            Banco Central do Brasil 2024 (Cargo 1 — Economia e Finanças). Progresso salvo localmente e
+            sincronizável na nuvem via GitHub Gist Privado.
+          </span>
+          <button
+            type="button"
+            className="footer-version-link"
+            onClick={() => setVersionModalOpen(true)}
+          >
+            <History size={13} />
+            Versão {CURRENT_RELEASE.id} ({CURRENT_RELEASE.edition}) · Histórico e versões anteriores
+          </button>
         </div>
       </footer>
 
@@ -361,6 +385,11 @@ export const App: React.FC = () => {
         onResolveConflict={resolveConflict}
         onToggleAutoSync={toggleAutoSync}
         onDisconnect={disconnectGitHub}
+      />
+
+      <VersionHistoryModal
+        isOpen={versionModalOpen}
+        onClose={() => setVersionModalOpen(false)}
       />
 
       <div className="comfort-warmth-overlay" aria-hidden="true" />

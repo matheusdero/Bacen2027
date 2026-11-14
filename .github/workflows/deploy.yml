@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
@@ -32,9 +34,12 @@ jobs:
         working-directory: site
         run: npm ci
 
-      - name: Compilar site (tsc + vite build)
+      - name: Compilar site atual (tsc + vite build)
         working-directory: site
         run: npm run build
+
+      - name: Compilar versões anteriores arquivadas (pré-edital / releases)
+        run: node scripts/build-archived-versions.mjs
 
       - name: Enviar artefato do GitHub Pages
         uses: actions/upload-pages-artifact@v3

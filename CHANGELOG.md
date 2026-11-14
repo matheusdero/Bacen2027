@@ -1,0 +1,29 @@
+# Changelog — Bacen 2027 · Plataforma do Treinador
+
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`).
+
+Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
+
+---
+
+## [v1.3.0] — 2026-11-14 · Controle de Versões & Arquivo Pré-Edital
+- Central de **Controle de Versões & Histórico** acessível diretamente pelo site (cabeçalho e rodapé).
+- Suporte a deploy multi-versão automático no GitHub Pages (`scripts/build-archived-versions.mjs` + `.github/workflows/deploy.yml`).
+- Botão para abrir e usar versões anteriores congeladas com barra de retorno para a versão mais recente.
+- Estrutura pronta para congelar a edição **Pré-Edital (Base 2024)** antes da atualização para o **Edital 2027**.
+
+## [v1.2.0] — 2026-11-14 · Auto-Calibração 0–4 pela Prova 2024 (`753dab4`)
+- Botão **`Auto-calibrar 0–4 pela Prova 2024`** no Painel & Plano com base na nota líquida Cebraspe (`+1 / -0,5 / 0`) em disciplinas com pelo menos 3 questões respondidas.
+- Sugestão individual por matéria quando o nível `0–4` atual difere da nota líquida em 2024.
+- **Fila de Ataque Imediato** reordenada pelos erros e questões em branco reais por tópico em 2024, com pílula de placar no card.
+
+## [v1.1.0] — 2026-11-14 · Brilho Contínuo, Luz Quente & 4 Modos de Tela (`ebaf02b`)
+- 4 modos graduais de leitura: **Claro Nítido**, **Claro Suave** (fundo fosco sem estourar a vista), **Papel Quente (Sépia)** e **Noturno**.
+- Slider contínuo de **Brilho da Tela (`45%` a `100%`)** e **Filtro Quente contra luz azul (`0%` a `65%`)**.
+- Preferências visuais persistidas localmente no dispositivo (`bacen2027_display_comfort_v1`).
+
+## [v1.0.0] — 2026-11-13 · Plataforma Base Pré-Edital 2024 + Gist Sync (`d6749a9`)
+- Painel & Plano Adaptativo semanal com benchmarks reais do Edital nº 10 / 2024 (AC, PcD e PP).
+- Banco completo com 120 questões Cebraspe 2024 comentadas (P1 + P2), diagramas SVG e Simulado cronometrado.
+- 37 aulas em Todo o Conteúdo, Oficina Discursiva P3/P4 e aba Evolução do Edital.
+- Gráficos SVG de Evolução Temporal e sincronização privada na nuvem via GitHub Gist.

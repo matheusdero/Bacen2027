@@ -1,0 +1,68 @@
+[
+  {
+    "id": "v1.3.0",
+    "ref": "main",
+    "tag": "v1.3.0",
+    "date": "2026-11-14",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Controle de Versões & Arquivo Pré-Edital",
+    "summary": "Central de versões dentro do site e no GitHub, permitindo ver o histórico de mudanças e abrir versões anteriores congeladas.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Novo modal de Controle de Versões com histórico completo de alterações por release (Changelog).",
+      "Deploy multi-versão automático no GitHub Pages (/versions/<versao>/), permitindo abrir e usar versões antigas sem perder o progresso salvo.",
+      "Estrutura pronta para congelar a edição Pré-Edital 2024 quando o Edital 2027 for publicado.",
+      "Tags Git e CHANGELOG.md versionado no repositório."
+    ]
+  },
+  {
+    "id": "v1.2.0",
+    "ref": "753dab4",
+    "tag": "v1.2.0",
+    "date": "2026-11-14",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Auto-Calibração 0–4 pela Prova 2024",
+    "summary": "Calibração automática dos níveis por disciplina usando a nota líquida Cebraspe e reordenação da fila de ataque pelos erros reais.",
+    "isCurrent": false,
+    "archive": true,
+    "changes": [
+      "Botão Auto-calibrar 0–4 pela Prova 2024 no Painel & Plano com base na nota líquida (+1 / -0,5 / 0) em matérias com >= 3 questões.",
+      "Sugestão individual abaixo de cada disciplina quando a nota atual 0–4 diverge do desempenho na prova 2024.",
+      "Fila de Ataque Imediato passou a priorizar tópicos com mais erros ou questões em branco em 2024, exibindo o placar no card."
+    ]
+  },
+  {
+    "id": "v1.1.0",
+    "ref": "ebaf02b",
+    "tag": "v1.1.0",
+    "date": "2026-11-14",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Brilho Contínuo, Luz Quente & 4 Modos de Tela",
+    "summary": "Sistema completo de conforto visual para estudar de dia, em claro suave ou pela madrugada.",
+    "isCurrent": false,
+    "archive": true,
+    "changes": [
+      "4 modos graduais de fundo: Claro Nítido, Claro Suave (sem branco estourado), Papel Quente (Sépia) e Noturno.",
+      "Slider contínuo de Brilho da Tela (45% a 100%) e Filtro Quente contra luz azul (0% a 65%).",
+      "Preferências visuais salvas localmente por dispositivo no navegador."
+    ]
+  },
+  {
+    "id": "v1.0.0",
+    "ref": "d6749a9",
+    "tag": "v1.0.0",
+    "date": "2026-11-13",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Plataforma Base Pré-Edital 2024 + Gist Sync",
+    "summary": "Lançamento completo da plataforma responsiva do treinador com dados oficiais de 2024, evolução temporal e sincronização na nuvem.",
+    "isCurrent": false,
+    "archive": true,
+    "changes": [
+      "Painel & Plano Adaptativo semanal com cortes oficiais do Edital nº 10 / 2024 (AC, PcD e PP).",
+      "Banco completo de 120 questões Cebraspe 2024 (P1 + P2) comentadas, com diagramas e Simulado cronometrado.",
+      "37 aulas em Todo o Conteúdo, Oficina Discursiva P3/P4 e aba Evolução do Edital.",
+      "Gráficos SVG de Evolução Temporal e sincronização privada via GitHub Gist."
+    ]
+  }
+]
