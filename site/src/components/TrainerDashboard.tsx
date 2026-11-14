@@ -14,6 +14,8 @@ import {
   Target,
   TrendingUp,
   Upload,
+  Wand2,
+  X,
 } from 'lucide-react';
 import {
   EXAM_BENCHMARKS_2024,
@@ -22,10 +24,13 @@ import {
 } from '../data/benchmarks2024';
 import { SYLLABUS_TOPICS } from '../data/syllabus';
 import {
+  AutoCalibrationResult,
   buildAdaptivePlan,
   classifyAccuracyTier,
   computeCebraspeScore,
   computeEditalEvolutionSummary,
+  computeSubjectCalibrationFromExam,
+  getTopicExamStats,
   getTopicPriorityOrder,
 } from '../hooks/useTrainerState';
 import {
@@ -46,6 +51,7 @@ interface TrainerDashboardProps {
   onOpenSyncModal: () => void;
   onUpdateField: <K extends keyof TrainerProfile>(field: K, value: TrainerProfile[K]) => void;
   onSetRating: (subjectId: SubjectId, rating: KnowledgeRating) => void;
+  onAutoCalibrate: () => AutoCalibrationResult;
   onAddMilestone: (
     allQuestions: QuestionItem[],
     label: string,
@@ -72,6 +78,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   onOpenSyncModal,
   onUpdateField,
   onSetRating,
+  onAutoCalibrate,
   onAddMilestone,
   onDeleteMilestone,
   onExportJson,
@@ -86,6 +93,22 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [calibrationNotice, setCalibrationNotice] = useState<AutoCalibrationResult | null>(null);
+
+  const questionMap = useMemo(
+    () => new Map<number, QuestionItem>(allQuestions.map((q) => [q.id, q])),
+    [allQuestions]
+  );
+
+  const calibrationMap = useMemo(
+    () => computeSubjectCalibrationFromExam(profile, allQuestions),
+    [profile, allQuestions]
+  );
+
+  const calibratableSubjectsCount = useMemo(
+    () => Object.values(calibrationMap).filter((c) => c.hasEnoughSample).length,
+    [calibrationMap]
+  );
 
   const editalSummary = useMemo(
     () => computeEditalEvolutionSummary(profile, allQuestions, true),
@@ -96,8 +119,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     [profile, editalSummary]
   );
   const topPriorityTopics = useMemo(
-    () => getTopicPriorityOrder(SYLLABUS_TOPICS, profile).slice(0, 6),
-    [profile]
+    () => getTopicPriorityOrder(SYLLABUS_TOPICS, profile, allQuestions).slice(0, 6),
+    [profile, allQuestions]
   );
 
   const p1Questions = useMemo(() => allQuestions.filter((q) => q.prova === 'P1'), [allQuestions]);
@@ -535,13 +558,69 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
       {/* Autoavaliação e Plano Semanal Adaptativo */}
       <section className="card">
         <div className="card-header">
-          <h2>
-            <TrendingUp size={18} /> Calibração do Seu Nível Atual &amp; Distribuição Semanal ({profile.weeklyHours}h/semana)
-          </h2>
-          <span className="subtitle-right">
-            Clique nos níveis 0–4 para recalibrar suas horas em tempo real
-          </span>
+          <div>
+            <h2>
+              <TrendingUp size={18} /> Calibração do Seu Nível Atual &amp; Distribuição Semanal ({profile.weeklyHours}h/semana)
+            </h2>
+            <span className="subtitle-right">
+              Ajuste manual (0–4) ou calibre automaticamente pela sua nota líquida na Prova 2024
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            disabled={calibratableSubjectsCount === 0}
+            title={
+              calibratableSubjectsCount === 0
+                ? 'Responda ao menos 3 questões válidas (C, E ou Em branco) em alguma matéria da Prova 2024 para liberar a calibração'
+                : `Calibrar ${calibratableSubjectsCount} disciplina(s) automaticamente pela Prova 2024`
+            }
+            onClick={() => setCalibrationNotice(onAutoCalibrate())}
+          >
+            <Wand2 size={14} />
+            Auto-calibrar 0–4 pela Prova 2024
+            {calibratableSubjectsCount > 0 ? ` (${calibratableSubjectsCount})` : ''}
+          </button>
         </div>
+
+        {calibrationNotice && (
+          <div className="calibration-banner" role="status">
+            <div className="calibration-banner-content">
+              <strong>
+                <Wand2 size={14} /> Calibração concluída em {calibrationNotice.calibratedCount}{' '}
+                disciplina(s) pela Prova 2024:
+              </strong>{' '}
+              {calibrationNotice.changes.length > 0 ? (
+                <span>
+                  {calibrationNotice.changes
+                    .map(
+                      (c) =>
+                        `${c.subjectShortName}: ${c.previousRating} → ${c.newRating} (${c.netPercent.toFixed(
+                          0
+                        )}% líq. em ${c.attemptedCount} q.)`
+                    )
+                    .join(' · ')}
+                </span>
+              ) : (
+                <span>Todos os níveis com amostra suficiente já estavam alinhados com seu desempenho em 2024.</span>
+              )}
+              {calibrationNotice.skippedCount > 0 && (
+                <span className="muted-note">
+                  {' '}
+                  · {calibrationNotice.skippedCount} matéria(s) com menos de 3 questões em 2024 (e Discursivas) foram mantidas.
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn btn-xs btn-outline"
+              onClick={() => setCalibrationNotice(null)}
+              aria-label="Fechar aviso de calibração"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        )}
 
         <div className="plan-table-wrap">
           <table className="plan-table">
@@ -556,7 +635,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               </tr>
             </thead>
             <tbody>
-              {adaptivePlan.map((row) => (
+              {adaptivePlan.map((row) => {
+                const calib = calibrationMap[row.subject.id];
+                const suggested = calib?.suggestedRating ?? null;
+                return (
                 <tr key={row.subject.id}>
                   <td data-label="Disciplina" className="td-subject">
                     <div className="subj-cell">
@@ -597,6 +679,25 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     </div>
                     <div className="rating-caption">
                       {KNOWLEDGE_LEVEL_LABELS[row.rating].short}
+                      {calib?.hasEnoughSample && suggested !== null && calib.netPercent !== null && (
+                        <>
+                          {' · '}
+                          {suggested !== row.rating ? (
+                            <button
+                              type="button"
+                              className="calib-suggest-link"
+                              title={`Aplicar nível ${suggested} (${KNOWLEDGE_LEVEL_LABELS[suggested].short}) com base nos ${calib.attemptedCount} itens de 2024`}
+                              onClick={() => onSetRating(row.subject.id, suggested)}
+                            >
+                              2024 sugere {suggested} ({calib.netPercent.toFixed(0)}% líq.)
+                            </button>
+                          ) : (
+                            <span className="calib-aligned-note">
+                              alinhado a 2024 ({calib.netPercent.toFixed(0)}% líq.)
+                            </span>
+                          )}
+                        </>
+                      )}
                     </div>
                   </td>
                   <td data-label="Edital & Desempenho" className="td-edital">
@@ -651,7 +752,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -676,6 +778,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           {topPriorityTopics.map((topic) => {
             const subj = SUBJECTS.find((s) => s.id === topic.subjectId);
             const status = profile.topicStatuses[topic.id] ?? 'nao_iniciado';
+            const examStats = getTopicExamStats(topic, profile, questionMap);
             return (
               <div key={topic.id} className="priority-topic-card">
                 <div className="ptc-top">
@@ -688,15 +791,28 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   >
                     {subj?.shortName} · {topic.level}
                   </span>
-                  <span className={`status-pill status-${status}`}>
-                    {status === 'nao_iniciado'
-                      ? 'Não iniciado'
-                      : status === 'em_estudo'
-                      ? 'Em estudo'
-                      : status === 'revisar'
-                      ? 'Revisar'
-                      : 'Dominado'}
-                  </span>
+                  <div className="ptc-pills">
+                    {examStats.attempted > 0 && (
+                      <span
+                        className={`topic-exam-chip ${
+                          examStats.wrong > 0 || examStats.blank > 0 ? 'has-misses' : 'all-right'
+                        }`}
+                        title="Seu desempenho neste tópico nas questões válidas de 2024"
+                      >
+                        2024: {examStats.right}C · {examStats.wrong}E
+                        {examStats.blank > 0 ? ` · ${examStats.blank}B` : ''}
+                      </span>
+                    )}
+                    <span className={`status-pill status-${status}`}>
+                      {status === 'nao_iniciado'
+                        ? 'Não iniciado'
+                        : status === 'em_estudo'
+                        ? 'Em estudo'
+                        : status === 'revisar'
+                        ? 'Revisar'
+                        : 'Dominado'}
+                    </span>
+                  </div>
                 </div>
                 <h3>{topic.title}</h3>
                 <p>{topic.summary}</p>

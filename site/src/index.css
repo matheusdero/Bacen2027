@@ -4249,5 +4249,93 @@ textarea {
   background: rgba(2, 6, 15, 0.72);
 }
 
+/* ==========================================================================
+   Auto-Calibração 2024 & Badges Empíricos da Fila de Ataque
+   ========================================================================== */
+
+.calibration-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.95rem;
+  margin-bottom: 0.9rem;
+  border-radius: 10px;
+  background: var(--surface-tint);
+  border: 1px solid var(--kpi-hi-border);
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.calibration-banner-content strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--navy);
+}
+
+.calib-suggest-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--primary);
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+}
+
+.calib-suggest-link:hover {
+  color: var(--primary-hover);
+}
+
+.calib-aligned-note {
+  color: var(--emerald);
+  font-weight: 600;
+}
+
+.ptc-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.topic-exam-chip {
+  font-size: 0.71rem;
+  font-weight: 700;
+  padding: 0.16rem 0.5rem;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.topic-exam-chip.has-misses {
+  background: var(--amber-bg);
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.topic-exam-chip.all-right {
+  background: var(--emerald-bg);
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+[data-theme='noturno'] .topic-exam-chip.has-misses {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+[data-theme='noturno'] .topic-exam-chip.all-right {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.45);
+}
+
+
 
 

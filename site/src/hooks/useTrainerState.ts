@@ -462,9 +462,148 @@ export function buildAdaptivePlan(
     .sort((a, b) => b.priorityScore - a.priorityScore);
 }
 
+export interface SubjectCalibrationPreview {
+  subjectId: SubjectId;
+  attemptedCount: number;
+  judgedCount: number;
+  right: number;
+  wrong: number;
+  blank: number;
+  netScore: number;
+  netPercent: number | null;
+  rawAccuracyPercent: number | null;
+  hasEnoughSample: boolean;
+  suggestedRating: KnowledgeRating | null;
+}
+
+export interface AutoCalibrationChange {
+  subjectId: SubjectId;
+  subjectShortName: string;
+  previousRating: KnowledgeRating;
+  newRating: KnowledgeRating;
+  netPercent: number;
+  attemptedCount: number;
+}
+
+export interface AutoCalibrationResult {
+  calibratedCount: number;
+  skippedCount: number;
+  changes: AutoCalibrationChange[];
+}
+
+export function mapNetPercentToRating(netPercent: number): KnowledgeRating {
+  if (netPercent < 20) return 0;
+  if (netPercent < 42) return 1;
+  if (netPercent < 62) return 2;
+  if (netPercent < 78) return 3;
+  return 4;
+}
+
+export function computeSubjectCalibrationFromExam(
+  profile: TrainerProfile,
+  allQuestions: QuestionItem[]
+): Record<SubjectId, SubjectCalibrationPreview> {
+  const result = {} as Record<SubjectId, SubjectCalibrationPreview>;
+
+  for (const subject of SUBJECTS) {
+    if (subject.id === 'discursivas') {
+      result[subject.id] = {
+        subjectId: subject.id,
+        attemptedCount: 0,
+        judgedCount: 0,
+        right: 0,
+        wrong: 0,
+        blank: 0,
+        netScore: 0,
+        netPercent: null,
+        rawAccuracyPercent: null,
+        hasEnoughSample: false,
+        suggestedRating: null,
+      };
+      continue;
+    }
+
+    let attemptedCount = 0;
+    let judgedCount = 0;
+    let right = 0;
+    let wrong = 0;
+    let blank = 0;
+
+    for (const q of allQuestions) {
+      if (q.subjectId !== subject.id || q.officialAnswer === 'X') continue;
+      const att = profile.questionAttempts[q.id];
+      if (!att) continue;
+      attemptedCount += 1;
+      if (att.mark === 'B') {
+        blank += 1;
+      } else {
+        judgedCount += 1;
+        if (att.mark === q.officialAnswer) right += 1;
+        else wrong += 1;
+      }
+    }
+
+    const netScore = Number((right - wrong * 0.5).toFixed(2));
+    const netPercent =
+      attemptedCount > 0 ? Number(((netScore / attemptedCount) * 100).toFixed(1)) : null;
+    const rawAccuracyPercent =
+      judgedCount > 0 ? Number(((right / judgedCount) * 100).toFixed(1)) : null;
+    const hasEnoughSample = attemptedCount >= 3;
+    const suggestedRating =
+      hasEnoughSample && netPercent !== null ? mapNetPercentToRating(netPercent) : null;
+
+    result[subject.id] = {
+      subjectId: subject.id,
+      attemptedCount,
+      judgedCount,
+      right,
+      wrong,
+      blank,
+      netScore,
+      netPercent,
+      rawAccuracyPercent,
+      hasEnoughSample,
+      suggestedRating,
+    };
+  }
+
+  return result;
+}
+
+export interface TopicExamStats {
+  attempted: number;
+  right: number;
+  wrong: number;
+  blank: number;
+}
+
+export function getTopicExamStats(
+  topic: SyllabusTopic,
+  profile: TrainerProfile,
+  questionMap: Map<number, QuestionItem>
+): TopicExamStats {
+  let attempted = 0;
+  let right = 0;
+  let wrong = 0;
+  let blank = 0;
+
+  for (const qId of topic.relatedQuestionIds) {
+    const q = questionMap.get(qId);
+    const att = profile.questionAttempts[qId];
+    if (!q || q.officialAnswer === 'X' || !att) continue;
+    attempted += 1;
+    if (att.mark === 'B') blank += 1;
+    else if (att.mark === q.officialAnswer) right += 1;
+    else wrong += 1;
+  }
+
+  return { attempted, right, wrong, blank };
+}
+
 export function getTopicPriorityOrder(
   topics: SyllabusTopic[],
-  profile: TrainerProfile
+  profile: TrainerProfile,
+  allQuestions?: QuestionItem[]
 ): SyllabusTopic[] {
   const statusWeight: Record<TopicStatus, number> = {
     revisar: 3.2,
@@ -472,15 +611,48 @@ export function getTopicPriorityOrder(
     nao_iniciado: 2.0,
     dominado: 0.4,
   };
-  return [...topics].sort((a, b) => {
-    const ratingA = profile.subjectRatings[a.subjectId] ?? 2;
-    const ratingB = profile.subjectRatings[b.subjectId] ?? 2;
-    const statusA = profile.topicStatuses[a.id] ?? 'nao_iniciado';
-    const statusB = profile.topicStatuses[b.id] ?? 'nao_iniciado';
-    const scoreA = (4.5 - ratingA) * statusWeight[statusA] * (1 + a.relatedQuestionIds.length * 0.25);
-    const scoreB = (4.5 - ratingB) * statusWeight[statusB] * (1 + b.relatedQuestionIds.length * 0.25);
-    return scoreB - scoreA;
-  });
+
+  const questionMap = new Map<number, QuestionItem>();
+  if (allQuestions) {
+    for (const q of allQuestions) questionMap.set(q.id, q);
+  }
+  const calibrationMap = allQuestions
+    ? computeSubjectCalibrationFromExam(profile, allQuestions)
+    : null;
+
+  const computeTopicScore = (topic: SyllabusTopic): number => {
+    const manualRating = profile.subjectRatings[topic.subjectId] ?? 2;
+    const calib = calibrationMap?.[topic.subjectId];
+    const effectiveRating =
+      calib && calib.hasEnoughSample && calib.suggestedRating !== null
+        ? manualRating * 0.5 + calib.suggestedRating * 0.5
+        : manualRating;
+
+    const status = profile.topicStatuses[topic.id] ?? 'nao_iniciado';
+    const incidenceFactor = 1 + topic.relatedQuestionIds.length * 0.25;
+
+    let empiricalUrgency = 1;
+    if (questionMap.size > 0 && topic.relatedQuestionIds.length > 0) {
+      const stats = getTopicExamStats(topic, profile, questionMap);
+      if (stats.attempted > 0) {
+        const missPressure = (stats.wrong * 1.35 + stats.blank * 0.85) / stats.attempted;
+        if (missPressure > 0) {
+          empiricalUrgency = 1 + missPressure * 0.9;
+        } else if (stats.right >= 2) {
+          empiricalUrgency = 0.82;
+        }
+      }
+    }
+
+    return (
+      (4.5 - effectiveRating) *
+      statusWeight[status] *
+      incidenceFactor *
+      empiricalUrgency
+    );
+  };
+
+  return [...topics].sort((a, b) => computeTopicScore(b) - computeTopicScore(a));
 }
 
 export function buildEvolutionMilestone(
@@ -560,6 +732,56 @@ export function useTrainerState() {
       }));
     },
     [commitMutation]
+  );
+
+  const autoCalibrateRatingsFromExam = useCallback(
+    (allQuestions: QuestionItem[]): AutoCalibrationResult => {
+      const previews = computeSubjectCalibrationFromExam(profile, allQuestions);
+      const changes: AutoCalibrationChange[] = [];
+      let calibratedCount = 0;
+      let skippedCount = 0;
+      const nextRatings = { ...profile.subjectRatings };
+
+      for (const subject of SUBJECTS) {
+        if (subject.id === 'discursivas') continue;
+        const preview = previews[subject.id];
+        if (
+          !preview ||
+          !preview.hasEnoughSample ||
+          preview.suggestedRating === null ||
+          preview.netPercent === null
+        ) {
+          skippedCount += 1;
+          continue;
+        }
+        calibratedCount += 1;
+        const prevRating = profile.subjectRatings[subject.id] ?? 2;
+        nextRatings[subject.id] = preview.suggestedRating;
+        if (prevRating !== preview.suggestedRating) {
+          changes.push({
+            subjectId: subject.id,
+            subjectShortName: subject.shortName,
+            previousRating: prevRating,
+            newRating: preview.suggestedRating,
+            netPercent: preview.netPercent,
+            attemptedCount: preview.attemptedCount,
+          });
+        }
+      }
+
+      if (calibratedCount > 0) {
+        commitMutation((prev) => ({
+          ...prev,
+          subjectRatings: {
+            ...prev.subjectRatings,
+            ...nextRatings,
+          },
+        }));
+      }
+
+      return { calibratedCount, skippedCount, changes };
+    },
+    [commitMutation, profile]
   );
 
   const setTopicStatus = useCallback(
@@ -833,6 +1055,7 @@ export function useTrainerState() {
     localMutationSeq,
     updateProfileField,
     setSubjectRating,
+    autoCalibrateRatingsFromExam,
     setTopicStatus,
     recordQuestionAttempt,
     toggleQuestionFlag,

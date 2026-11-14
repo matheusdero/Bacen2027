@@ -36,6 +36,7 @@ export const App: React.FC = () => {
     localMutationSeq,
     updateProfileField,
     setSubjectRating,
+    autoCalibrateRatingsFromExam,
     setTopicStatus,
     recordQuestionAttempt,
     toggleQuestionFlag,
@@ -261,6 +262,7 @@ export const App: React.FC = () => {
             onOpenSyncModal={() => setSyncModalOpen(true)}
             onUpdateField={updateProfileField}
             onSetRating={setSubjectRating}
+            onAutoCalibrate={() => autoCalibrateRatingsFromExam(allQuestions)}
             onAddMilestone={addEvolutionMilestone}
             onDeleteMilestone={deleteEvolutionMilestone}
             onExportJson={exportProfileJson}
