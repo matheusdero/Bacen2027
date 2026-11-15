@@ -1,12 +1,16 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.6] — 2026-11-15 · Menu em Linha Única Adaptativa (`>= 980px`)
+## [v1.3.7] — 2026-11-15 · Transição Suave com Desfoque Entre Telas & Modais
+- Transição direcional em `360ms` com desfoque gradual (`blur(10px) -> blur(0px)`), leve deslizamento horizontal conforme a ordem da aba e curva exponencial suave ao trocar de tela no menu.
+- Abertura suave com desfoque e escala leve também aplicada aos modais de Sincronização e Controle de Versões (respeitando `prefers-reduced-motion`).
+
+## [v1.3.6] — 2026-11-15 · Menu em Linha Única Adaptativa (`>= 980px`) (`0b784ab`)
 - Aproveita o novo cabeçalho enxuto para manter o menu de abas na **mesma linha superior** em telas a partir de `980px` de largura (notebooks, monitores médios e navegadores com zoom).
 - Abaixo de `980px`, onde não há folga lateral suficiente, as abas descem automaticamente para uma segunda linha centralizada.
 

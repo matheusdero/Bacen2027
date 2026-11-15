@@ -379,6 +379,46 @@ textarea {
   flex: 1;
 }
 
+.tab-stage {
+  --tab-shift-x: 0px;
+}
+
+.tab-stage[data-direction='forward'] {
+  --tab-shift-x: 16px;
+  animation: tab-stage-in 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-stage[data-direction='backward'] {
+  --tab-shift-x: -16px;
+  animation: tab-stage-in 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tab-stage-in {
+  0% {
+    opacity: 0.06;
+    filter: blur(10px);
+    transform: translate3d(var(--tab-shift-x, 0px), 6px, 0) scale(0.992);
+  }
+  65% {
+    opacity: 0.96;
+    filter: blur(1.2px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-stage[data-direction='forward'],
+  .tab-stage[data-direction='backward'],
+  .modal-backdrop,
+  .modal-card {
+    animation: none !important;
+  }
+}
+
 .view-stack {
   display: flex;
   flex-direction: column;
@@ -2982,6 +3022,7 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  animation: modal-backdrop-in 0.2s ease-out;
 }
 
 .modal-card {
@@ -2992,6 +3033,29 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 24px 60px -12px rgba(11, 31, 58, 0.35);
+  animation: modal-card-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-card-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-header {

@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.6",
+    "id": "v1.3.7",
     "ref": "main",
+    "tag": "v1.3.7",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Transição Suave com Desfoque Entre Telas & Modais",
+    "summary": "Efeito visual de transição suave com desfoque direcional (blur-dissolve) ao alternar entre as abas do menu principal e ao abrir janelas modais.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Transição direcional de entrada em 360ms com desfoque suave (10px -> 0px) e leve deslizamento ao trocar de aba no menu superior.",
+      "Preservação automática da fixação (sticky) das barras laterais de aulas e gabarito após concluir a animação.",
+      "Entrada suave com desfoque para modais de sincronização e histórico de versões, respeitando preferências de movimento reduzido do sistema."
+    ]
+  },
+  {
+    "id": "v1.3.6",
+    "ref": "0b784ab",
     "tag": "v1.3.6",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Menu em Linha Única Adaptativa (>= 980px)",
     "summary": "Aproveitamento automático do cabeçalho mais enxuto para manter as abas de navegação na mesma linha superior em notebooks, monitores compactos ou com zoom (a partir de 980px), descendo apenas em telas menores.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Ponto de quebra do menu reduzido de 1240px para 980px graças ao cabeçalho minimalista.",
       "Em monitores e notebooks com largura a partir de 980px (ou zoomed), as abas sobem e ficam centralizadas na mesma linha da logo e dos ícones.",

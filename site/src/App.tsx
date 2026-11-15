@@ -36,6 +36,15 @@ import { SubjectId } from './types';
 
 type TabId = 'dashboard' | 'edital' | 'questions' | 'syllabus' | 'discursivas' | 'simulator';
 
+const TAB_ORDER: Record<TabId, number> = {
+  dashboard: 0,
+  edital: 1,
+  questions: 2,
+  syllabus: 3,
+  discursivas: 4,
+  simulator: 5,
+};
+
 export const App: React.FC = () => {
   const {
     profile,
@@ -93,6 +102,13 @@ export const App: React.FC = () => {
   });
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [tabDirection, setTabDirection] = useState<'forward' | 'backward' | 'none'>('none');
+
+  const selectTab = (nextTab: TabId) => {
+    if (nextTab === activeTab) return;
+    setTabDirection(TAB_ORDER[nextTab] >= TAB_ORDER[activeTab] ? 'forward' : 'backward');
+    setActiveTab(nextTab);
+  };
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [versionModalOpen, setVersionModalOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState<boolean>(() => {
@@ -150,13 +166,13 @@ export const App: React.FC = () => {
       setSyllabusSubject('all');
       if (topicId) setSyllabusTopicId(topicId);
     }
-    setActiveTab('syllabus');
+    selectTab('syllabus');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const openQuestionLab = (questionId: number) => {
     setActiveQuestionId(questionId);
-    setActiveTab('questions');
+    selectTab('questions');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -246,7 +262,7 @@ export const App: React.FC = () => {
                   key={item.id}
                   type="button"
                   className={`nav-tab ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => selectTab(item.id)}
                   aria-label={item.counter ? `${item.label} (${item.counter})` : item.label}
                   aria-current={isActive ? 'page' : undefined}
                 >
@@ -375,88 +391,90 @@ export const App: React.FC = () => {
             </div>
           )}
 
-        {activeTab === 'dashboard' && (
-          <TrainerDashboard
-            profile={profile}
-            todayStudyProgress={todayProgress}
-            allQuestions={allQuestions}
-            syncStatus={syncStatus}
-            githubLogin={syncConfig.githubLogin}
-            onOpenSyncModal={() => setSyncModalOpen(true)}
-            onUpdateField={updateProfileField}
-            onSetRating={setSubjectRating}
-            onAutoCalibrate={() => autoCalibrateRatingsFromExam(allQuestions)}
-            onAddMilestone={addEvolutionMilestone}
-            onDeleteMilestone={deleteEvolutionMilestone}
-            onExportJson={exportProfileJson}
-            onImportJson={importProfileJson}
-            onReset={resetProgress}
-            onNavigateToEditalTracker={() => setActiveTab('edital')}
-            onNavigateToSyllabus={openSyllabusTopic}
-            onNavigateToQuestion={openQuestionLab}
-            onNavigateToDiscursivas={() => setActiveTab('discursivas')}
-            onNavigateToSimulator={() => setActiveTab('simulator')}
-          />
-        )}
+        <div key={activeTab} className="tab-stage" data-direction={tabDirection}>
+          {activeTab === 'dashboard' && (
+            <TrainerDashboard
+              profile={profile}
+              todayStudyProgress={todayProgress}
+              allQuestions={allQuestions}
+              syncStatus={syncStatus}
+              githubLogin={syncConfig.githubLogin}
+              onOpenSyncModal={() => setSyncModalOpen(true)}
+              onUpdateField={updateProfileField}
+              onSetRating={setSubjectRating}
+              onAutoCalibrate={() => autoCalibrateRatingsFromExam(allQuestions)}
+              onAddMilestone={addEvolutionMilestone}
+              onDeleteMilestone={deleteEvolutionMilestone}
+              onExportJson={exportProfileJson}
+              onImportJson={importProfileJson}
+              onReset={resetProgress}
+              onNavigateToEditalTracker={() => selectTab('edital')}
+              onNavigateToSyllabus={openSyllabusTopic}
+              onNavigateToQuestion={openQuestionLab}
+              onNavigateToDiscursivas={() => selectTab('discursivas')}
+              onNavigateToSimulator={() => selectTab('simulator')}
+            />
+          )}
 
-        {activeTab === 'edital' && (
-          <EditalTrackerView
-            profile={profile}
-            allQuestions={allQuestions}
-            onToggleCompleted={toggleEditalItemCompleted}
-            onSetStats={setEditalItemStats}
-            onAddBatch={addEditalPracticeBatch}
-            onClearItem={clearEditalItemProgress}
-            onOpenTopicLesson={openSyllabusTopic}
-            onOpenQuestion={openQuestionLab}
-          />
-        )}
+          {activeTab === 'edital' && (
+            <EditalTrackerView
+              profile={profile}
+              allQuestions={allQuestions}
+              onToggleCompleted={toggleEditalItemCompleted}
+              onSetStats={setEditalItemStats}
+              onAddBatch={addEditalPracticeBatch}
+              onClearItem={clearEditalItemProgress}
+              onOpenTopicLesson={openSyllabusTopic}
+              onOpenQuestion={openQuestionLab}
+            />
+          )}
 
-        {activeTab === 'questions' && (
-          <QuestionLabView
-            allQuestions={allQuestions}
-            activeQuestionId={activeQuestionId}
-            attempts={profile.questionAttempts}
-            onSelectQuestion={setActiveQuestionId}
-            onRecordAttempt={recordQuestionAttempt}
-            onToggleFlag={toggleQuestionFlag}
-            onSaveNote={setQuestionNote}
-            onOpenTopicLesson={openSyllabusTopic}
-          />
-        )}
+          {activeTab === 'questions' && (
+            <QuestionLabView
+              allQuestions={allQuestions}
+              activeQuestionId={activeQuestionId}
+              attempts={profile.questionAttempts}
+              onSelectQuestion={setActiveQuestionId}
+              onRecordAttempt={recordQuestionAttempt}
+              onToggleFlag={toggleQuestionFlag}
+              onSaveNote={setQuestionNote}
+              onOpenTopicLesson={openSyllabusTopic}
+            />
+          )}
 
-        {activeTab === 'syllabus' && (
-          <SyllabusView
-            selectedSubjectId={syllabusSubject}
-            selectedTopicId={syllabusTopicId}
-            topicStatuses={profile.topicStatuses}
-            allQuestions={allQuestions}
-            onSelectSubject={setSyllabusSubject}
-            onSelectTopic={setSyllabusTopicId}
-            onSetTopicStatus={setTopicStatus}
-            onOpenQuestion={openQuestionLab}
-          />
-        )}
+          {activeTab === 'syllabus' && (
+            <SyllabusView
+              selectedSubjectId={syllabusSubject}
+              selectedTopicId={syllabusTopicId}
+              topicStatuses={profile.topicStatuses}
+              allQuestions={allQuestions}
+              onSelectSubject={setSyllabusSubject}
+              onSelectTopic={setSyllabusTopicId}
+              onSetTopicStatus={setTopicStatus}
+              onOpenQuestion={openQuestionLab}
+            />
+          )}
 
-        {activeTab === 'discursivas' && (
-          <DiscursiveWorkshopView
-            drafts={profile.discursiveDrafts}
-            onSaveDraft={setDiscursiveDraft}
-          />
-        )}
+          {activeTab === 'discursivas' && (
+            <DiscursiveWorkshopView
+              drafts={profile.discursiveDrafts}
+              onSaveDraft={setDiscursiveDraft}
+            />
+          )}
 
-        {activeTab === 'simulator' && (
-          <SimulatorView
-            allQuestions={allQuestions}
-            attempts={profile.questionAttempts}
-            targetTrack={profile.targetTrack}
-            onRecordAttempt={recordQuestionAttempt}
-            onSaveSimulatorMilestone={(label, overrideExam, note) =>
-              addEvolutionMilestone(allQuestions, label, 'simulator', overrideExam, note)
-            }
-            onOpenQuestion={openQuestionLab}
-          />
-        )}
+          {activeTab === 'simulator' && (
+            <SimulatorView
+              allQuestions={allQuestions}
+              attempts={profile.questionAttempts}
+              targetTrack={profile.targetTrack}
+              onRecordAttempt={recordQuestionAttempt}
+              onSaveSimulatorMilestone={(label, overrideExam, note) =>
+                addEvolutionMilestone(allQuestions, label, 'simulator', overrideExam, note)
+              }
+              onOpenQuestion={openQuestionLab}
+            />
+          )}
+        </div>
       </main>
 
       <footer className="site-footer">
