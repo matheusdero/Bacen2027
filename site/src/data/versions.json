@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.9",
+    "id": "v1.3.10",
     "ref": "main",
+    "tag": "v1.3.10",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Correção de Colunas no Termômetro por Disciplina",
+    "summary": "Ajuste do grid de disciplinas em Evolução do Edital > Termômetro por Disciplina para evitar 5 colunas espremidas e vazamento de texto em monitores grandes, distribuindo os cards em colunas amplas e equilibradas.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Remoção da regra que forçava 5 colunas estreitas em telas >= 1400px dentro de um bloco de meia largura, onde cada card ficava com ~115px e causava quebra/vazamento de texto.",
+      "Grid ajustado com largura mínima de 240px por card (resultando em 2 colunas × 5 linhas em monitores grandes), preenchendo harmonicamente a altura ao lado do Diagnóstico do Treinador.",
+      "Proteções de largura mínima (`min-width: 0`) nos cards e nomes de disciplina para impedir qualquer estouro horizontal."
+    ]
+  },
+  {
+    "id": "v1.3.9",
+    "ref": "5408ba1",
     "tag": "v1.3.9",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Painel & Plano Organizado em 4 Grupos Temáticos por Cor",
     "summary": "Reorganização completa da leitura na tela Painel & Plano em 4 grupos distintos com cabeçalhos coloridos, navegação rápida no topo e opção de recolher/expandir cada bloco sem ocultar nenhuma informação.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Atalhos rápidos de navegação no topo para pular diretamente a qualquer um dos 4 grupos temáticos.",
       "Separação visual com cabeçalhos e cores próprias: Grupo 01 Azul (Alvo & Régua 2024), Grupo 02 Esmeralda (Frequência & Evolução), Grupo 03 Âmbar (Plano Semanal & Fila de Ataque) e Grupo 04 Roxo (Perfil, Base 2024 & Backups).",

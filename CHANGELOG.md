@@ -1,12 +1,16 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`, `v1.3.10`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.9] — 2026-11-15 · Painel & Plano Organizado em 4 Grupos Temáticos por Cor
+## [v1.3.10] — 2026-11-15 · Correção de Colunas no Termômetro por Disciplina
+- Na aba **Evolução do Edital** (`Termômetro por Disciplina`), removida a regra de 5 colunas em telas `>= 1400px` que espremia os cards em ~115px dentro de um bloco de meia largura e causava vazamento de texto e sobra vertical abaixo.
+- Novo grid responsivo com largura mínima de `240px` por card (exibindo 2 colunas × 5 linhas equilibradas em monitores grandes, sem vazamento e alinhado verticalmente ao Diagnóstico do Treinador).
+
+## [v1.3.9] — 2026-11-15 · Painel & Plano Organizado em 4 Grupos Temáticos por Cor (`5408ba1`)
 - Tela **Painel & Plano** estruturada em 4 grupos distintos com cabeçalho próprio, faixa superior colorida, atalho rápido no hero e opção de recolher/expandir:
   - **Grupo 01 (Azul):** Alvo Real & Régua Oficial 2024 + Insight Cebraspe lado a lado.
   - **Grupo 02 (Esmeralda):** Frequência de Estudo Real & Curva de Evolução Temporal.

@@ -2379,11 +2379,12 @@ textarea {
 
 .edital-subj-bars {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
 }
 
 .edital-subj-bar-card {
+  min-width: 0;
   text-align: left;
   background: var(--surface-alt);
   border: 1px solid var(--border);
@@ -2419,9 +2420,11 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   font-weight: 700;
   font-size: 0.88rem;
   color: var(--navy);
+  line-height: 1.25;
 }
 
 .esb-meta {
@@ -3566,10 +3569,6 @@ textarea {
 
 /* Large Desktop Monitors (>= 1400px) */
 @media (min-width: 1400px) {
-  .edital-subj-bars {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
   .syllabus-layout {
     grid-template-columns: 360px minmax(0, 1fr);
     gap: 1.4rem;
