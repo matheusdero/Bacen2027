@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
+  ChevronDown,
+  ChevronUp,
   Cloud,
   CloudOff,
   Compass,
@@ -78,6 +80,21 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [versionModalOpen, setVersionModalOpen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem('bacen2027_nav_collapsed_v1') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('bacen2027_nav_collapsed_v1', navCollapsed ? '1' : '0');
+    } catch {
+      // ignora erro de armazenamento
+    }
+  }, [navCollapsed]);
 
   const {
     settings: comfortSettings,
@@ -129,8 +146,21 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="app-shell">
-      <header className="top-nav">
+    <div className={`app-shell ${navCollapsed ? 'nav-collapsed' : ''}`}>
+      {navCollapsed && (
+        <button
+          type="button"
+          className="nav-restore-fab"
+          onClick={() => setNavCollapsed(false)}
+          aria-label="Mostrar barra de navegação superior"
+          title="Mostrar barra de navegação"
+        >
+          <ChevronDown size={14} />
+          <span>Menu</span>
+        </button>
+      )}
+
+      <header className="top-nav" hidden={navCollapsed}>
         <div className="top-nav-inner">
           <div className="brand-block">
             <div className="brand-mark">
@@ -261,6 +291,16 @@ export const App: React.FC = () => {
                   )}
                 </span>
               </span>
+            </button>
+
+            <button
+              type="button"
+              className="nav-collapse-btn"
+              onClick={() => setNavCollapsed(true)}
+              aria-label="Recolher barra superior para modo foco"
+              title="Recolher barra superior (Modo Foco)"
+            >
+              <ChevronUp size={16} />
             </button>
           </div>
         </div>

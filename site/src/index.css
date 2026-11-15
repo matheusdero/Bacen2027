@@ -4562,6 +4562,102 @@ textarea {
   gap: 0.5rem;
 }
 
+/* ==========================================================================
+   Barra Superior Recolhível (Modo Foco)
+   ========================================================================== */
+
+.nav-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #dbeafe;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.nav-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+}
+
+.nav-restore-fab {
+  position: fixed;
+  top: 10px;
+  right: 14px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.34rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--navy);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.78;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.16s ease, border-color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
+}
+
+.nav-restore-fab:hover,
+.nav-restore-fab:focus-visible {
+  opacity: 1;
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+
+.app-shell.nav-collapsed .top-nav[hidden] {
+  display: none;
+}
+
+.app-shell.nav-collapsed .main-container {
+  padding-top: 2.85rem;
+}
+
+.app-shell.nav-collapsed .topic-sidebar {
+  top: 16px;
+  max-height: calc(100dvh - 32px);
+}
+
+@media (min-width: 1400px) {
+  .app-shell.nav-collapsed .lab-grid > .card:last-child {
+    top: 16px;
+    max-height: calc(100dvh - 32px);
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-collapse-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-restore-fab {
+    top: 8px;
+    right: 10px;
+    padding: 0.3rem 0.64rem;
+    font-size: 0.74rem;
+  }
+
+  .app-shell.nav-collapsed .main-container {
+    padding-top: 2.7rem;
+  }
+}
+
+
 
 
 

@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.0",
+    "id": "v1.3.1",
     "ref": "main",
+    "tag": "v1.3.1",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Barra Superior Recolhível (Modo Foco)",
+    "summary": "Recolhimento manual da barra de navegação superior para leitura e resolução de questões sem distrações.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Botão discreto de seta para cima no canto direito do cabeçalho para recolher manualmente a barra superior.",
+      "Botão flutuante discreto ('Menu') no topo direito quando recolhida, para restaurar a navegação com 1 toque.",
+      "Ajuste automático dos painéis laterais fixos (aulas e gabarito) para aproveitar toda a altura da tela no modo foco."
+    ]
+  },
+  {
+    "id": "v1.3.0",
+    "ref": "fe7a6bb",
     "tag": "v1.3.0",
     "date": "2026-11-14",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Controle de Versões & Arquivo Pré-Edital",
     "summary": "Central de versões dentro do site e no GitHub, permitindo ver o histórico de mudanças e abrir versões anteriores congeladas.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Novo modal de Controle de Versões com histórico completo de alterações por release (Changelog).",
       "Deploy multi-versão automático no GitHub Pages (/versions/<versao>/), permitindo abrir e usar versões antigas sem perder o progresso salvo.",
