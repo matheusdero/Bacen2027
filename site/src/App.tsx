@@ -56,6 +56,7 @@ export const App: React.FC = () => {
     recordQuestionAttempt,
     toggleQuestionFlag,
     setQuestionNote,
+    startNewExamRound,
     setDiscursiveDraft,
     toggleEditalItemCompleted,
     setEditalItemStats,
@@ -434,10 +435,15 @@ export const App: React.FC = () => {
               allQuestions={allQuestions}
               activeQuestionId={activeQuestionId}
               attempts={profile.questionAttempts}
+              currentExamRound={profile.currentExamRound ?? 1}
+              examRoundsHistory={profile.examRoundsHistory ?? []}
+              questionNotes={profile.questionNotes ?? {}}
+              questionFlags={profile.questionFlags ?? {}}
               onSelectQuestion={setActiveQuestionId}
               onRecordAttempt={recordQuestionAttempt}
               onToggleFlag={toggleQuestionFlag}
               onSaveNote={setQuestionNote}
+              onStartNewRound={(opts) => startNewExamRound(allQuestions, opts)}
               onOpenTopicLesson={openSyllabusTopic}
             />
           )}
@@ -466,8 +472,12 @@ export const App: React.FC = () => {
             <SimulatorView
               allQuestions={allQuestions}
               attempts={profile.questionAttempts}
+              currentExamRound={profile.currentExamRound ?? 1}
+              examRoundsHistory={profile.examRoundsHistory ?? []}
+              questionFlags={profile.questionFlags ?? {}}
               targetTrack={profile.targetTrack}
               onRecordAttempt={recordQuestionAttempt}
+              onStartNewRound={(opts) => startNewExamRound(allQuestions, opts)}
               onSaveSimulatorMilestone={(label, overrideExam, note) =>
                 addEvolutionMilestone(allQuestions, label, 'simulator', overrideExam, note)
               }

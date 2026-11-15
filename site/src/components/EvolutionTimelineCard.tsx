@@ -11,6 +11,7 @@ import {
 import { EXAM_BENCHMARKS_2024, SUBJECTS } from '../data/benchmarks2024';
 import {
   CebraspeStats,
+  computeRoundComparisonSummary,
   EditalEvolutionSummary,
 } from '../hooks/useTrainerState';
 import { EvolutionMilestone, QuestionItem, SubjectId, TrainerProfile } from '../types';
@@ -64,6 +65,18 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const milestones = profile.evolutionHistory ?? [];
+  const roundsHistory = profile.examRoundsHistory ?? [];
+  const currentRound = profile.currentExamRound ?? 1;
+  const latestArchivedRound =
+    roundsHistory.length > 0 ? roundsHistory[roundsHistory.length - 1] : null;
+  const roundComparison = useMemo(() => {
+    if (!latestArchivedRound) return null;
+    return computeRoundComparisonSummary(
+      allQuestions,
+      profile.questionAttempts,
+      latestArchivedRound
+    );
+  }, [allQuestions, profile.questionAttempts, latestArchivedRound]);
 
   const trackBench = useMemo(() => {
     if (profile.targetTrack === 'PcD') return EXAM_BENCHMARKS_2024.realResultsEd10.PcD;
@@ -630,6 +643,74 @@ export const EvolutionTimelineCard: React.FC<EvolutionTimelineCardProps> = ({
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Comparativo de Rodadas na Prova 2024 */}
+      {roundsHistory.length > 0 && (
+        <div className="evo-rounds-box">
+          <div className="evo-rounds-head">
+            <div className="subhead">
+              Histórico de Rodadas na Prova 2024 ({roundsHistory.length + 1} ciclos)
+            </div>
+            {roundComparison && roundComparison.comparableCount > 0 && (
+              <div className="evo-rounds-deltas">
+                <span className="round-chip chip-right">
+                  {roundComparison.evolved} evolução(ões)
+                </span>
+                <span className="round-chip chip-neutral">
+                  {roundComparison.maintained} mantido(s)
+                </span>
+                {roundComparison.regressed > 0 && (
+                  <span className="round-chip chip-wrong">
+                    {roundComparison.regressed} regressão(ões)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="evo-rounds-list">
+            {roundsHistory.map((snap, idx) => {
+              const prevSnap = idx > 0 ? roundsHistory[idx - 1] : null;
+              const delta = prevSnap ? snap.netScore - prevSnap.netScore : null;
+              return (
+                <div key={`round-${snap.round}-${snap.archivedAt}`} className="evo-round-row">
+                  <div>
+                    <strong>{snap.label}</strong>{' '}
+                    <span className="muted-note">
+                      · encerrada em {new Date(snap.archivedAt).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                  <div className="evo-history-nums">
+                    <span className="badge">{snap.netScore.toFixed(2)} pts</span>
+                    <span className="badge badge-info">
+                      {snap.answeredCount}/115 ({snap.correctCount}C · {snap.wrongCount}E ·{' '}
+                      {snap.blankCount}B)
+                    </span>
+                    {delta !== null && (
+                      <span className={`trend-badge ${delta >= 0 ? 'trend-up' : 'trend-down'}`}>
+                        {delta >= 0 ? '+' : ''}
+                        {delta.toFixed(2)} pts
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            <div className="evo-round-row is-active-round">
+              <div>
+                <strong>Rodada {currentRound} (em andamento)</strong>{' '}
+                <span className="muted-note">· marcações ativas no momento</span>
+              </div>
+              <div className="evo-history-nums">
+                <span className="badge badge-primary">{overallStats.netScore.toFixed(2)} pts</span>
+                <span className="badge badge-info">
+                  {overallStats.answeredCount}/115 ({overallStats.correctCount}C ·{' '}
+                  {overallStats.wrongCount}E · {overallStats.blankCount}B)
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}

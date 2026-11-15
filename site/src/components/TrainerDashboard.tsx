@@ -393,13 +393,20 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             </div>
           </div>
           <div className="kpi-card">
-            <div className="kpi-label">Questões 2024 Julgadas</div>
+            <div className="kpi-label">
+              Questões 2024 Julgadas{' '}
+              {(profile.currentExamRound ?? 1) > 1 || (profile.examRoundsHistory?.length ?? 0) > 0
+                ? `· Rodada ${profile.currentExamRound ?? 1}`
+                : ''}
+            </div>
             <div className="kpi-value">
               {overallStats.answeredCount} / {allQuestions.length - overallStats.annulledCount}
             </div>
             <div className="kpi-meta">
               {overallStats.accuracyPercent !== null
                 ? `Acerto: ${overallStats.accuracyPercent.toFixed(1)}% (${overallStats.correctCount}C · ${overallStats.wrongCount}E · ${overallStats.blankCount}B)`
+                : (profile.examRoundsHistory?.length ?? 0) > 0
+                ? `Nova rodada em branco · R${profile.examRoundsHistory![profile.examRoundsHistory!.length - 1].round}: ${profile.examRoundsHistory![profile.examRoundsHistory!.length - 1].netScore.toFixed(2)} pts`
                 : 'Nenhuma questão marcada ainda'}
             </div>
           </div>

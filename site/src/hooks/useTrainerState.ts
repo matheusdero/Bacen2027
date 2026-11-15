@@ -7,8 +7,10 @@ import {
   EditalItemProgress,
   EditalPracticeEntry,
   EvolutionMilestone,
+  ExamRoundSnapshot,
   KnowledgeRating,
   QuestionAttempt,
+  QuestionAttemptEntry,
   QuestionItem,
   StudyDayRecord,
   SubjectId,
@@ -50,6 +52,10 @@ export const DEFAULT_PROFILE: TrainerProfile = {
   },
   topicStatuses: {},
   questionAttempts: {},
+  currentExamRound: 1,
+  examRoundsHistory: [],
+  questionNotes: {},
+  questionFlags: {},
   discursiveDrafts: {
     P3: '',
     P4: '',
@@ -61,6 +67,21 @@ export const DEFAULT_PROFILE: TrainerProfile = {
 };
 
 export function normalizeProfile(parsed: Partial<TrainerProfile>): TrainerProfile {
+  const attempts = parsed.questionAttempts ?? {};
+  const mergedNotes: Record<number, string> = { ...(parsed.questionNotes ?? {}) };
+  const mergedFlags: Record<number, boolean> = { ...(parsed.questionFlags ?? {}) };
+
+  for (const [rawId, att] of Object.entries(attempts)) {
+    const qId = Number(rawId);
+    if (!Number.isFinite(qId) || !att) continue;
+    if (att.selfNote && !mergedNotes[qId]) {
+      mergedNotes[qId] = att.selfNote;
+    }
+    if (att.flaggedForReview && mergedFlags[qId] === undefined) {
+      mergedFlags[qId] = true;
+    }
+  }
+
   return {
     ...DEFAULT_PROFILE,
     ...parsed,
@@ -73,7 +94,14 @@ export function normalizeProfile(parsed: Partial<TrainerProfile>): TrainerProfil
       ...(parsed.subjectRatings ?? {}),
     },
     topicStatuses: parsed.topicStatuses ?? {},
-    questionAttempts: parsed.questionAttempts ?? {},
+    questionAttempts: attempts,
+    currentExamRound:
+      typeof parsed.currentExamRound === 'number' && parsed.currentExamRound >= 1
+        ? parsed.currentExamRound
+        : 1,
+    examRoundsHistory: Array.isArray(parsed.examRoundsHistory) ? parsed.examRoundsHistory : [],
+    questionNotes: mergedNotes,
+    questionFlags: mergedFlags,
     discursiveDrafts: {
       ...DEFAULT_PROFILE.discursiveDrafts,
       ...(parsed.discursiveDrafts ?? {}),
@@ -784,6 +812,125 @@ export function buildEvolutionMilestone(
   };
 }
 
+export type QuestionOutcome = 'correct' | 'wrong' | 'blank' | 'annulled';
+
+export type RoundTransitionType =
+  | 'evolved'
+  | 'regressed'
+  | 'persistent_wrong'
+  | 'maintained'
+  | 'neutral';
+
+export function getQuestionRoundOutcome(
+  q: QuestionItem,
+  att?: QuestionAttempt
+): QuestionOutcome | null {
+  if (!att) return null;
+  if (q.officialAnswer === 'X') return 'annulled';
+  if (att.mark === 'B') return 'blank';
+  return att.mark === q.officialAnswer ? 'correct' : 'wrong';
+}
+
+export function getLatestPreviousRoundAttempt(
+  questionId: number,
+  examRoundsHistory: ExamRoundSnapshot[] = []
+): { round: number; attempt: QuestionAttempt } | null {
+  for (let i = examRoundsHistory.length - 1; i >= 0; i -= 1) {
+    const snap = examRoundsHistory[i];
+    const found = snap.attempts?.[questionId];
+    if (found) {
+      return { round: snap.round, attempt: found };
+    }
+  }
+  return null;
+}
+
+export function getQuestionRoundHistoryEntries(
+  questionId: number,
+  examRoundsHistory: ExamRoundSnapshot[] = [],
+  currentRound: number,
+  currentAttempt?: QuestionAttempt
+): QuestionAttemptEntry[] {
+  const entries: QuestionAttemptEntry[] = [];
+  for (const snap of examRoundsHistory) {
+    const found = snap.attempts?.[questionId];
+    if (found) {
+      entries.push({
+        mark: found.mark,
+        answeredAt: found.updatedAt,
+        round: snap.round,
+      });
+    }
+  }
+  if (currentAttempt) {
+    entries.push({
+      mark: currentAttempt.mark,
+      answeredAt: currentAttempt.updatedAt,
+      round: currentRound,
+    });
+  }
+  return entries;
+}
+
+export function classifyRoundTransition(
+  q: QuestionItem,
+  currentAtt?: QuestionAttempt,
+  prevAtt?: QuestionAttempt
+): RoundTransitionType {
+  if (!currentAtt || !prevAtt || q.officialAnswer === 'X') return 'neutral';
+  const prevOut = getQuestionRoundOutcome(q, prevAtt);
+  const currOut = getQuestionRoundOutcome(q, currentAtt);
+  if (!prevOut || !currOut) return 'neutral';
+  if ((prevOut === 'wrong' || prevOut === 'blank') && currOut === 'correct') return 'evolved';
+  if (prevOut === 'correct' && currOut === 'wrong') return 'regressed';
+  if (prevOut === 'wrong' && currOut === 'wrong') return 'persistent_wrong';
+  if (prevOut === 'correct' && currOut === 'correct') return 'maintained';
+  return 'neutral';
+}
+
+export interface RoundComparisonSummary {
+  comparableCount: number;
+  evolved: number;
+  maintained: number;
+  regressed: number;
+  persistentWrong: number;
+  netDelta: number;
+}
+
+export function computeRoundComparisonSummary(
+  allQuestions: QuestionItem[],
+  currentAttempts: Record<number, QuestionAttempt>,
+  prevSnapshot: ExamRoundSnapshot
+): RoundComparisonSummary {
+  let comparableCount = 0;
+  let evolved = 0;
+  let maintained = 0;
+  let regressed = 0;
+  let persistentWrong = 0;
+
+  for (const q of allQuestions) {
+    const curr = currentAttempts[q.id];
+    const prev = prevSnapshot.attempts?.[q.id];
+    if (!curr || !prev || q.officialAnswer === 'X') continue;
+    comparableCount += 1;
+    const t = classifyRoundTransition(q, curr, prev);
+    if (t === 'evolved') evolved += 1;
+    else if (t === 'maintained') maintained += 1;
+    else if (t === 'regressed') regressed += 1;
+    else if (t === 'persistent_wrong') persistentWrong += 1;
+  }
+
+  const currentStats = computeCebraspeScore(allQuestions, currentAttempts);
+  return {
+    comparableCount,
+    evolved,
+    maintained,
+    regressed,
+    persistentWrong,
+    netDelta: Number((currentStats.netScore - prevSnapshot.netScore).toFixed(2)),
+  };
+}
+
 export function useTrainerState() {
   const [profile, setProfile] = useState<TrainerProfile>(loadInitialProfile);
   const [localMutationSeq, setLocalMutationSeq] = useState(0);
@@ -889,9 +1036,43 @@ export function useTrainerState() {
   );
 
   const recordQuestionAttempt = useCallback(
-    (questionId: number, mark: UserMark) => {
+    (questionId: number, mark: UserMark, source: 'lab' | 'simulator' = 'lab') => {
       commitMutation((prev) => {
+        const currentRound = prev.currentExamRound ?? 1;
         const existing = prev.questionAttempts[questionId];
+        const now = new Date().toISOString();
+
+        const baseHistory: QuestionAttemptEntry[] = existing?.history
+          ? [...existing.history]
+          : existing
+          ? [{ mark: existing.mark, answeredAt: existing.updatedAt, round: currentRound }]
+          : [];
+
+        const lastEntry = baseHistory[baseHistory.length - 1];
+        const withinQuickCorrectionWindow =
+          lastEntry &&
+          lastEntry.round === currentRound &&
+          Date.now() - Date.parse(lastEntry.answeredAt) < 2 * 60 * 1000;
+
+        let nextHistory: QuestionAttemptEntry[];
+        if (lastEntry && lastEntry.round === currentRound && lastEntry.mark === mark) {
+          nextHistory = [
+            ...baseHistory.slice(0, -1),
+            { ...lastEntry, answeredAt: now, source },
+          ];
+        } else if (withinQuickCorrectionWindow) {
+          nextHistory = [
+            ...baseHistory.slice(0, -1),
+            { mark, answeredAt: now, round: currentRound, source },
+          ];
+        } else {
+          nextHistory = [...baseHistory, { mark, answeredAt: now, round: currentRound, source }];
+        }
+
+        const preservedNote = prev.questionNotes?.[questionId] ?? existing?.selfNote;
+        const preservedFlag =
+          prev.questionFlags?.[questionId] ?? existing?.flaggedForReview ?? false;
+
         return {
           ...prev,
           questionAttempts: {
@@ -899,7 +1080,10 @@ export function useTrainerState() {
             [questionId]: {
               ...existing,
               mark,
-              updatedAt: new Date().toISOString(),
+              updatedAt: now,
+              selfNote: preservedNote,
+              flaggedForReview: preservedFlag || undefined,
+              history: nextHistory,
             },
           },
         };
@@ -912,16 +1096,26 @@ export function useTrainerState() {
     (questionId: number) => {
       commitMutation((prev) => {
         const existing = prev.questionAttempts[questionId];
+        const currentFlag =
+          prev.questionFlags?.[questionId] ?? existing?.flaggedForReview ?? false;
+        const nextFlag = !currentFlag;
+
+        const nextQuestionAttempts = existing
+          ? {
+              ...prev.questionAttempts,
+              [questionId]: {
+                ...existing,
+                flaggedForReview: nextFlag || undefined,
+              },
+            }
+          : prev.questionAttempts;
+
         return {
           ...prev,
-          questionAttempts: {
-            ...prev.questionAttempts,
-            [questionId]: {
-              mark: existing?.mark ?? 'B',
-              updatedAt: existing?.updatedAt ?? new Date().toISOString(),
-              selfNote: existing?.selfNote,
-              flaggedForReview: !existing?.flaggedForReview,
-            },
+          questionAttempts: nextQuestionAttempts,
+          questionFlags: {
+            ...(prev.questionFlags ?? {}),
+            [questionId]: nextFlag,
           },
         };
       });
@@ -933,17 +1127,102 @@ export function useTrainerState() {
     (questionId: number, note: string) => {
       commitMutation((prev) => {
         const existing = prev.questionAttempts[questionId];
+        const nextQuestionAttempts = existing
+          ? {
+              ...prev.questionAttempts,
+              [questionId]: {
+                ...existing,
+                selfNote: note,
+              },
+            }
+          : prev.questionAttempts;
+
         return {
           ...prev,
-          questionAttempts: {
-            ...prev.questionAttempts,
-            [questionId]: {
-              mark: existing?.mark ?? 'B',
-              updatedAt: new Date().toISOString(),
-              flaggedForReview: existing?.flaggedForReview,
-              selfNote: note,
-            },
+          questionAttempts: nextQuestionAttempts,
+          questionNotes: {
+            ...(prev.questionNotes ?? {}),
+            [questionId]: note,
           },
+        };
+      });
+    },
+    [commitMutation]
+  );
+
+  const startNewExamRound = useCallback(
+    (
+      allQuestions: QuestionItem[],
+      options?: { keepFlags?: boolean; saveMilestone?: boolean }
+    ) => {
+      commitMutation((prev) => {
+        const currentRound = prev.currentExamRound ?? 1;
+        const existingRounds = prev.examRoundsHistory ?? [];
+        const attemptKeys = Object.keys(prev.questionAttempts);
+
+        let nextRoundsHistory = existingRounds;
+        let nextEvolutionHistory = prev.evolutionHistory ?? [];
+
+        if (attemptKeys.length > 0) {
+          const stats = computeCebraspeScore(allQuestions, prev.questionAttempts);
+          const nowIso = new Date().toISOString();
+
+          const snapshot: ExamRoundSnapshot = {
+            round: currentRound,
+            label: `Rodada ${currentRound}`,
+            archivedAt: nowIso,
+            attempts: { ...prev.questionAttempts },
+            netScore: Number(stats.netScore.toFixed(2)),
+            answeredCount: stats.answeredCount,
+            correctCount: stats.correctCount,
+            wrongCount: stats.wrongCount,
+            blankCount: stats.blankCount,
+          };
+          nextRoundsHistory = [...existingRounds, snapshot];
+
+          if (options?.saveMilestone !== false) {
+            const milestone = buildEvolutionMilestone(
+              prev,
+              allQuestions,
+              `Fim da Rodada ${currentRound} (${stats.answeredCount} q.)`,
+              'milestone',
+              { netScore: stats.netScore, answeredCount: stats.answeredCount },
+              `${stats.correctCount}C · ${stats.wrongCount}E · ${stats.blankCount}B · arquivada p/ revisão`
+            );
+            nextEvolutionHistory = [...nextEvolutionHistory, milestone].sort((a, b) =>
+              a.createdAt.localeCompare(b.createdAt)
+            );
+          }
+        }
+
+        const nextFlags: Record<number, boolean> =
+          options?.keepFlags === false ? {} : { ...(prev.questionFlags ?? {}) };
+
+        if (options?.keepFlags !== false) {
+          for (const [rawId, att] of Object.entries(prev.questionAttempts)) {
+            const qId = Number(rawId);
+            if (Number.isFinite(qId) && att?.flaggedForReview) {
+              nextFlags[qId] = true;
+            }
+          }
+        }
+
+        const nextNotes: Record<number, string> = { ...(prev.questionNotes ?? {}) };
+        for (const [rawId, att] of Object.entries(prev.questionAttempts)) {
+          const qId = Number(rawId);
+          if (Number.isFinite(qId) && att?.selfNote && !nextNotes[qId]) {
+            nextNotes[qId] = att.selfNote;
+          }
+        }
+
+        return {
+          ...prev,
+          currentExamRound: currentRound + 1,
+          examRoundsHistory: nextRoundsHistory,
+          evolutionHistory: nextEvolutionHistory,
+          questionNotes: nextNotes,
+          questionFlags: nextFlags,
+          questionAttempts: {},
         };
       });
     },
@@ -1204,6 +1483,7 @@ export function useTrainerState() {
     recordQuestionAttempt,
     toggleQuestionFlag,
     setQuestionNote,
+    startNewExamRound,
     setDiscursiveDraft,
     toggleEditalItemCompleted,
     setEditalItemStats,

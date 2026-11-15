@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.12",
+    "id": "v1.4.0",
     "ref": "main",
+    "tag": "v1.4.0",
+    "date": "2026-11-15",
+    "edition": "Autorizado 2026 (Base 2024)",
+    "title": "Sistema de Rodadas & Histórico de Tentativas por Questão",
+    "summary": "Permite refazer a prova completa do zero em novas rodadas (Rodada 1, Rodada 2...) sem apagar respostas anteriores, anotações pessoais ou marcos, com detecção de evolução (Erro → Acerto) e regressão (Acerto → Erro) por questão.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Botão Nova Rodada em Branco em Questões + Aulas e no Simulado 2024 com confirmação segura: arquiva o placar completo da rodada atual (e um marco na Evolução Temporal) antes de limpar os cartões.",
+      "Histórico cronológico por item (sem spoiler antes de responder), indicando Evolução, Regressão, Reincidência ou Acerto Mantido em comparação às rodadas anteriores.",
+      "Novos filtros em Questões + Aulas ('Errei em rodadas anteriores', 'Evoluí' e 'Regredi'), Caderno de Erros inteligente entre rodadas e tabela comparativa de rodadas na Curva de Evolução Temporal."
+    ]
+  },
+  {
+    "id": "v1.3.12",
+    "ref": "1a7c686",
     "tag": "v1.3.12",
     "date": "2026-11-15",
     "edition": "Autorizado 2026 (Base 2024)",
     "title": "Correção do Rodapé no Modo Noturno, Sépia e Suave",
     "summary": "Substituição do fundo branco fixo de .site-footer por variável semântica --footer-bg adaptada a todos os 4 temas visuais (Claro, Suave, Papel Quente/Sépia e Noturno).",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Rodapé (.site-footer) agora respeita a paleta escura no Modo Noturno (#131c2e translúcido), além dos tons dedicados para Claro Suave e Papel Quente (Sépia)."
     ]

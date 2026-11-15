@@ -8,21 +8,31 @@ import {
   Play,
   RotateCcw,
   Target,
+  TrendingUp,
   XCircle,
   MinusCircle,
 } from 'lucide-react';
 import { EXAM_BENCHMARKS_2024, SUBJECTS } from '../data/benchmarks2024';
 import { QUESTION_CONTEXTS } from '../data/contexts';
-import { computeCebraspeScore } from '../hooks/useTrainerState';
-import { QuestionAttempt, QuestionItem, UserMark } from '../types';
+import {
+  classifyRoundTransition,
+  computeCebraspeScore,
+  computeRoundComparisonSummary,
+  getLatestPreviousRoundAttempt,
+} from '../hooks/useTrainerState';
+import { ExamRoundSnapshot, QuestionAttempt, QuestionItem, UserMark } from '../types';
 import { ExamDiagram } from './ExamDiagrams';
 import { MathText } from './MathText';
 
 interface SimulatorViewProps {
   allQuestions: QuestionItem[];
   attempts: Record<number, QuestionAttempt>;
+  currentExamRound: number;
+  examRoundsHistory: ExamRoundSnapshot[];
+  questionFlags: Record<number, boolean>;
   targetTrack: 'AC' | 'PcD' | 'PP';
-  onRecordAttempt: (questionId: number, mark: UserMark) => void;
+  onRecordAttempt: (questionId: number, mark: UserMark, source?: 'lab' | 'simulator') => void;
+  onStartNewRound: (options?: { keepFlags?: boolean }) => void;
   onSaveSimulatorMilestone: (
     label: string,
     overrideExam: { netScore: number; answeredCount: number },
@@ -70,8 +80,12 @@ function formatClock(seconds: number): string {
 export const SimulatorView: React.FC<SimulatorViewProps> = ({
   allQuestions,
   attempts,
+  currentExamRound,
+  examRoundsHistory,
+  questionFlags,
   targetTrack,
   onRecordAttempt,
+  onStartNewRound,
   onSaveSimulatorMilestone,
   onOpenQuestion,
 }) => {
@@ -80,8 +94,14 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({
   const [secondsLeft, setSecondsLeft] = useState(MODE_CONFIG.p1.minutes * 60);
   const [examFinished, setExamFinished] = useState(false);
   const [useIsolatedSession, setUseIsolatedSession] = useState(true);
+  const [syncToRound, setSyncToRound] = useState(true);
   const [sessionMarks, setSessionMarks] = useState<Record<number, QuestionAttempt>>({});
   const [milestoneSavedToast, setMilestoneSavedToast] = useState(false);
+  const [confirmNewRoundOpen, setConfirmNewRoundOpen] = useState(false);
+  const [keepFlagsOnNewRound, setKeepFlagsOnNewRound] = useState(true);
+
+  const latestArchivedRound =
+    examRoundsHistory.length > 0 ? examRoundsHistory[examRoundsHistory.length - 1] : null;
 
   useEffect(() => {
     setSecondsLeft(MODE_CONFIG[mode].minutes * 60);
@@ -109,15 +129,27 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({
     if (mode === 'p2') return allQuestions.filter((q) => q.prova === 'P2');
     if (mode === 'errors') {
       return allQuestions.filter((q) => {
-        const a = attempts[q.id];
-        if (!a) return false;
-        const isWrong =
-          q.officialAnswer !== 'X' && a.mark !== 'B' && a.mark !== q.officialAnswer;
-        return isWrong || Boolean(a.flaggedForReview);
+        const currAtt = attempts[q.id];
+        const isCurrWrong =
+          Boolean(currAtt) &&
+          q.officialAnswer !== 'X' &&
+          currAtt.mark !== 'B' &&
+          currAtt.mark !== q.officialAnswer;
+        const isFlagged = Boolean(questionFlags[q.id] ?? currAtt?.flaggedForReview);
+
+        let unresolvedPrevWrong = false;
+        if (!currAtt && latestArchivedRound && q.officialAnswer !== 'X') {
+          const prevAtt = latestArchivedRound.attempts?.[q.id];
+          unresolvedPrevWrong = Boolean(
+            prevAtt && prevAtt.mark !== 'B' && prevAtt.mark !== q.officialAnswer
+          );
+        }
+
+        return isCurrWrong || isFlagged || unresolvedPrevWrong;
       });
     }
     return allQuestions;
-  }, [allQuestions, mode, attempts]);
+  }, [allQuestions, mode, attempts, questionFlags, latestArchivedRound]);
 
   const effectiveAttempts = useIsolatedSession ? sessionMarks : attempts;
 
@@ -169,8 +201,20 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({
         [qId]: { mark, updatedAt: new Date().toISOString() },
       }));
     }
-    onRecordAttempt(qId, mark);
+    if (!useIsolatedSession || syncToRound) {
+      onRecordAttempt(qId, mark, 'simulator');
+    }
   };
+
+  const activeRoundStats = useMemo(
+    () => computeCebraspeScore(allQuestions, attempts),
+    [allQuestions, attempts]
+  );
+
+  const roundComparison = useMemo(() => {
+    if (!latestArchivedRound) return null;
+    return computeRoundComparisonSummary(activeQuestions, effectiveAttempts, latestArchivedRound);
+  }, [activeQuestions, effectiveAttempts, latestArchivedRound]);
 
   const resetSession = () => {
     setSessionMarks({});
@@ -245,18 +289,83 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({
         </div>
 
         <div className="sim-options-bar">
-          <label className="toggle-pill">
-            <input
-              type="checkbox"
-              checked={useIsolatedSession}
-              onChange={(e) => setUseIsolatedSession(e.target.checked)}
-            />
-            <span>Simulado limpo nesta sessão (sem pré-marcar histórico anterior)</span>
-          </label>
-          <span className="muted-note">
-            Todas as marcações feitas aqui também alimentam seu histórico permanente no Painel.
-          </span>
+          <div className="sim-options-toggles">
+            <label className="toggle-pill">
+              <input
+                type="checkbox"
+                checked={useIsolatedSession}
+                onChange={(e) => setUseIsolatedSession(e.target.checked)}
+              />
+              <span>Simulado limpo nesta sessão (sem pré-marcar histórico anterior)</span>
+            </label>
+
+            {useIsolatedSession && (
+              <label className="toggle-pill">
+                <input
+                  type="checkbox"
+                  checked={syncToRound}
+                  onChange={(e) => setSyncToRound(e.target.checked)}
+                />
+                <span>Registrar marcações na Rodada {currentExamRound} do Painel</span>
+              </label>
+            )}
+          </div>
+
+          <div className="sim-round-actions">
+            <span className="badge badge-primary">
+              Rodada {currentExamRound} ({activeRoundStats.answeredCount}/120)
+            </span>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={() => setConfirmNewRoundOpen((v) => !v)}
+              title="Arquivar rodada atual na Evolução Temporal e começar outra em branco"
+            >
+              <RotateCcw size={13} /> Nova Rodada
+            </button>
+          </div>
         </div>
+
+        {confirmNewRoundOpen && (
+          <div className="round-confirm-box">
+            <div className="round-confirm-copy">
+              <strong>Arquivar Rodada {currentExamRound} e iniciar Rodada {currentExamRound + 1} em branco?</strong>
+              <p className="muted-note">
+                {activeRoundStats.answeredCount > 0
+                  ? `A Rodada ${currentExamRound} (${activeRoundStats.answeredCount}/120 questões · ${activeRoundStats.netScore.toFixed(2)} pts) será salva na Evolução Temporal antes de limpar as respostas para um novo ciclo.`
+                  : `Iniciará a Rodada ${currentExamRound + 1} mantendo todas as anotações e rodadas já arquivadas.`}
+              </p>
+              <label className="toggle-pill">
+                <input
+                  type="checkbox"
+                  checked={keepFlagsOnNewRound}
+                  onChange={(e) => setKeepFlagsOnNewRound(e.target.checked)}
+                />
+                <span>Manter marcadores &quot;Revisar depois&quot;</span>
+              </label>
+            </div>
+            <div className="round-confirm-actions">
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  onStartNewRound({ keepFlags: keepFlagsOnNewRound });
+                  resetSession();
+                  setConfirmNewRoundOpen(false);
+                }}
+              >
+                <RotateCcw size={14} /> Confirmar Rodada {currentExamRound + 1}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                onClick={() => setConfirmNewRoundOpen(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Painel de Resultado / Correção */}
@@ -333,6 +442,36 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({
               </div>
             </div>
           </div>
+
+          {latestArchivedRound && roundComparison && roundComparison.comparableCount > 0 && (
+            <div className="sim-round-compare-strip">
+              <div className="sim-round-compare-title">
+                <TrendingUp size={16} />
+                <span>
+                  Comparativo com a {latestArchivedRound.label} (
+                  {latestArchivedRound.netScore.toFixed(2)} pts):
+                </span>
+              </div>
+              <div className="sim-round-compare-chips">
+                <span className="round-chip chip-right">
+                  {roundComparison.evolved} evolução(ões) (Erro/Branco → Acerto)
+                </span>
+                <span className="round-chip chip-neutral">
+                  {roundComparison.maintained} acerto(s) mantido(s)
+                </span>
+                {roundComparison.regressed > 0 && (
+                  <span className="round-chip chip-wrong">
+                    {roundComparison.regressed} regressão(ões) (Acerto → Erro)
+                  </span>
+                )}
+                {roundComparison.persistentWrong > 0 && (
+                  <span className="round-chip chip-wrong">
+                    {roundComparison.persistentWrong} erro(s) reincidente(s)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="plan-table-wrap">
             <table className="plan-table">
@@ -490,6 +629,33 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({
                             {att.mark === q.officialAnswer ? '+1,00' : '−0,50'}
                           </span>
                         )}
+                        {(() => {
+                          const prev = getLatestPreviousRoundAttempt(q.id, examRoundsHistory);
+                          if (!prev || q.officialAnswer === 'X') return null;
+                          const trans = classifyRoundTransition(q, att, prev.attempt);
+                          if (trans === 'evolved') {
+                            return (
+                              <span className="round-trans-badge is-evolved">
+                                Evoluiu vs R{prev.round}
+                              </span>
+                            );
+                          }
+                          if (trans === 'regressed') {
+                            return (
+                              <span className="round-trans-badge is-regressed">
+                                Acertou na R{prev.round}
+                              </span>
+                            );
+                          }
+                          if (trans === 'persistent_wrong') {
+                            return (
+                              <span className="round-trans-badge is-persistent">
+                                Reincidente (R{prev.round})
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     )}
                   </div>

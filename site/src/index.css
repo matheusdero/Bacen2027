@@ -5659,6 +5659,250 @@ textarea {
   }
 }
 
+/* ============================================================
+   Sistema de Rodadas & Histórico de Tentativas por Questão
+   ============================================================ */
+.lab-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.round-notice-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid rgba(5, 150, 105, 0.32);
+  background: var(--emerald-bg);
+  color: var(--emerald);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.round-confirm-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 0.95rem 1.05rem;
+  border-radius: 12px;
+  border: 1px solid var(--kpi-hi-border);
+  background: var(--surface-tint);
+}
+
+.round-confirm-copy {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.round-confirm-copy strong {
+  color: var(--navy);
+  font-size: 0.92rem;
+}
+
+.round-confirm-copy .muted-note {
+  margin: 0;
+}
+
+.round-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.round-history-box {
+  margin-top: 0.85rem;
+  padding: 0.78rem 0.92rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.round-history-box.round-transition-evolved {
+  border-color: rgba(5, 150, 105, 0.35);
+}
+
+.round-history-box.round-transition-regressed,
+.round-history-box.round-transition-persistent_wrong {
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.round-history-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.round-history-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.round-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.round-chip.chip-right {
+  background: var(--emerald-bg);
+  border-color: rgba(5, 150, 105, 0.32);
+  color: var(--emerald);
+}
+
+.round-chip.chip-wrong {
+  background: var(--danger-bg);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: var(--danger);
+}
+
+.round-chip.chip-blank {
+  background: var(--amber-bg);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--amber);
+}
+
+.round-trans-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.16rem 0.56rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.round-trans-badge.is-evolved {
+  background: var(--emerald-bg);
+  color: var(--emerald);
+}
+
+.round-trans-badge.is-regressed,
+.round-trans-badge.is-persistent {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.round-trans-badge.is-maintained {
+  background: var(--surface-tint);
+  color: var(--primary);
+}
+
+.sim-options-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.9rem;
+  align-items: center;
+}
+
+.sim-round-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sim-round-compare-strip {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 11px;
+  border: 1px solid var(--kpi-hi-border);
+  background: var(--surface-tint);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sim-round-compare-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.sim-round-compare-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.evo-rounds-box {
+  margin-top: 1rem;
+  padding: 0.92rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.evo-rounds-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
+.evo-rounds-head .subhead {
+  margin: 0;
+}
+
+.evo-rounds-deltas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.evo-rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+}
+
+.evo-round-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.58rem 0.78rem;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.84rem;
+}
+
+.evo-round-row.is-active-round {
+  border-color: var(--kpi-hi-border);
+  background: var(--surface-tint);
+}
+
 
 
 

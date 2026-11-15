@@ -41,6 +41,8 @@ function loadSyncConfig(): GitHubSyncConfig {
 
 export function isLocalProfileEmpty(profile: TrainerProfile): boolean {
   const hasQuestions = Object.keys(profile.questionAttempts).length > 0;
+  const hasRounds = (profile.examRoundsHistory?.length ?? 0) > 0;
+  const hasQuestionNotes = Object.values(profile.questionNotes ?? {}).some((v) => Boolean(v?.trim()));
   const hasEdital = Object.values(profile.editalProgress).some(
     (p) => p.completed || p.questionsDone > 0 || (p.history?.length ?? 0) > 0
   );
@@ -50,7 +52,16 @@ export function isLocalProfileEmpty(profile: TrainerProfile): boolean {
   const hasDrafts =
     Boolean(profile.discursiveDrafts?.P3?.trim()) ||
     Boolean(profile.discursiveDrafts?.P4?.trim());
-  return !hasQuestions && !hasEdital && !hasTopics && !hasMilestones && !hasQualifiedStudyDays && !hasDrafts;
+  return (
+    !hasQuestions &&
+    !hasRounds &&
+    !hasQuestionNotes &&
+    !hasEdital &&
+    !hasTopics &&
+    !hasMilestones &&
+    !hasQualifiedStudyDays &&
+    !hasDrafts
+  );
 }
 
 export interface PendingSyncConflict {

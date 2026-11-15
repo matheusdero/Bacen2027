@@ -11,7 +11,9 @@ import {
   HelpCircle,
   Layers,
   Lightbulb,
+  RotateCcw,
   Search,
+  TrendingUp,
   CheckCircle2,
   XCircle,
   MinusCircle,
@@ -20,6 +22,13 @@ import { SUBJECTS } from '../data/benchmarks2024';
 import { QUESTION_CONTEXTS } from '../data/contexts';
 import { SYLLABUS_TOPICS } from '../data/syllabus';
 import {
+  classifyRoundTransition,
+  computeCebraspeScore,
+  getLatestPreviousRoundAttempt,
+  getQuestionRoundHistoryEntries,
+} from '../hooks/useTrainerState';
+import {
+  ExamRoundSnapshot,
   PrereqLevel,
   QuestionAttempt,
   QuestionItem,
@@ -33,10 +42,15 @@ interface QuestionLabViewProps {
   allQuestions: QuestionItem[];
   activeQuestionId: number;
   attempts: Record<number, QuestionAttempt>;
+  currentExamRound: number;
+  examRoundsHistory: ExamRoundSnapshot[];
+  questionNotes: Record<number, string>;
+  questionFlags: Record<number, boolean>;
   onSelectQuestion: (questionId: number) => void;
   onRecordAttempt: (questionId: number, mark: UserMark) => void;
   onToggleFlag: (questionId: number) => void;
   onSaveNote: (questionId: number, note: string) => void;
+  onStartNewRound: (options?: { keepFlags?: boolean }) => void;
   onOpenTopicLesson: (subjectId: SubjectId, topicId: string) => void;
 }
 
@@ -46,16 +60,24 @@ type StatusFilter =
   | 'wrong'
   | 'correct'
   | 'flagged'
-  | 'annulled_or_changed';
+  | 'annulled_or_changed'
+  | 'previously_wrong'
+  | 'evolved'
+  | 'regressed';
 
 export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
   allQuestions,
   activeQuestionId,
   attempts,
+  currentExamRound,
+  examRoundsHistory,
+  questionNotes,
+  questionFlags,
   onSelectQuestion,
   onRecordAttempt,
   onToggleFlag,
   onSaveNote,
+  onStartNewRound,
   onOpenTopicLesson,
 }) => {
   const [provaFilter, setProvaFilter] = useState<'all' | 'P1' | 'P2'>('all');
@@ -66,6 +88,14 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
   const [studyModeAutoReveal, setStudyModeAutoReveal] = useState(true);
   const [revealedIds, setRevealedIds] = useState<Record<number, boolean>>({});
   const [contextExpanded, setContextExpanded] = useState(true);
+  const [confirmNewRoundOpen, setConfirmNewRoundOpen] = useState(false);
+  const [keepFlagsOnNewRound, setKeepFlagsOnNewRound] = useState(true);
+  const [roundStartedBanner, setRoundStartedBanner] = useState<string | null>(null);
+
+  const currentRoundStats = useMemo(
+    () => computeCebraspeScore(allQuestions, attempts),
+    [allQuestions, attempts]
+  );
 
   const filteredQuestions = useMemo(() => {
     const qLower = search.trim().toLowerCase();
@@ -75,6 +105,10 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
       if (levelFilter !== 'all' && item.requiredLevel !== levelFilter) return false;
 
       const att = attempts[item.id];
+      const isFlagged = Boolean(questionFlags[item.id] ?? att?.flaggedForReview);
+      const prevRound = getLatestPreviousRoundAttempt(item.id, examRoundsHistory);
+      const transition = classifyRoundTransition(item, att, prevRound?.attempt);
+
       if (statusFilter === 'unanswered' && att) return false;
       if (statusFilter === 'correct') {
         if (!att || att.mark === 'B' || item.officialAnswer === 'X' || att.mark !== item.officialAnswer) {
@@ -86,7 +120,21 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
           return false;
         }
       }
-      if (statusFilter === 'flagged' && !att?.flaggedForReview) return false;
+      if (statusFilter === 'flagged' && !isFlagged) return false;
+      if (statusFilter === 'previously_wrong') {
+        const missedBefore = examRoundsHistory.some((snap) => {
+          const prevAtt = snap.attempts?.[item.id];
+          return (
+            prevAtt &&
+            item.officialAnswer !== 'X' &&
+            prevAtt.mark !== 'B' &&
+            prevAtt.mark !== item.officialAnswer
+          );
+        });
+        if (!missedBefore) return false;
+      }
+      if (statusFilter === 'evolved' && transition !== 'evolved') return false;
+      if (statusFilter === 'regressed' && transition !== 'regressed') return false;
       if (
         statusFilter === 'annulled_or_changed' &&
         item.officialAnswer !== 'X' &&
@@ -118,6 +166,8 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
     statusFilter,
     search,
     attempts,
+    questionFlags,
+    examRoundsHistory,
   ]);
 
   const currentQuestion = useMemo(() => {
@@ -154,6 +204,20 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
   }
 
   const attempt = attempts[currentQuestion.id];
+  const currentFlagged = Boolean(questionFlags[currentQuestion.id] ?? attempt?.flaggedForReview);
+  const currentNote = questionNotes[currentQuestion.id] ?? attempt?.selfNote ?? '';
+  const prevRoundMatch = getLatestPreviousRoundAttempt(currentQuestion.id, examRoundsHistory);
+  const questionTimeline = getQuestionRoundHistoryEntries(
+    currentQuestion.id,
+    examRoundsHistory,
+    currentExamRound,
+    attempt
+  );
+  const roundTransition = classifyRoundTransition(
+    currentQuestion,
+    attempt,
+    prevRoundMatch?.attempt
+  );
   const isRevealed =
     Boolean(revealedIds[currentQuestion.id]) ||
     (studyModeAutoReveal && Boolean(attempt));
@@ -191,7 +255,7 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
       else if (a.mark === q.officialAnswer) classes.push('pill-correct');
       else classes.push('pill-wrong');
     }
-    if (a?.flaggedForReview) classes.push('pill-flagged');
+    if (a?.flaggedForReview || questionFlags[q.id]) classes.push('pill-flagged');
     return classes.join(' ');
   };
 
@@ -221,19 +285,102 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
       <section className="card">
         <div className="card-header">
           <div>
-            <span className="eyebrow">Estudo Guiado Questão a Questão</span>
+            <span className="eyebrow">
+              Estudo Guiado Questão a Questão · Rodada {currentExamRound}
+              {examRoundsHistory.length > 0
+                ? ` (${examRoundsHistory.length} rodada${examRoundsHistory.length > 1 ? 's' : ''} arquivada${examRoundsHistory.length > 1 ? 's' : ''})`
+                : ''}
+            </span>
             <h2>Laboratório da Prova 2024 — Enunciado, Resposta, Aula &amp; Pré-requisitos</h2>
           </div>
 
-          <label className="toggle-pill">
-            <input
-              type="checkbox"
-              checked={studyModeAutoReveal}
-              onChange={(e) => setStudyModeAutoReveal(e.target.checked)}
-            />
-            <span>Revelar resposta e aula ao julgar</span>
-          </label>
+          <div className="lab-header-controls">
+            <label className="toggle-pill">
+              <input
+                type="checkbox"
+                checked={studyModeAutoReveal}
+                onChange={(e) => setStudyModeAutoReveal(e.target.checked)}
+              />
+              <span>Revelar resposta e aula ao julgar</span>
+            </label>
+
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={() => setConfirmNewRoundOpen((v) => !v)}
+              title="Arquivar respostas da rodada atual na Evolução Temporal e recomeçar os cartões em branco"
+            >
+              <RotateCcw size={14} /> Nova Rodada em Branco
+            </button>
+          </div>
         </div>
+
+        {roundStartedBanner && (
+          <div className="round-notice-banner">
+            <TrendingUp size={15} />
+            <span>{roundStartedBanner}</span>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={() => setRoundStartedBanner(null)}
+            >
+              Ok
+            </button>
+          </div>
+        )}
+
+        {confirmNewRoundOpen && (
+          <div className="round-confirm-box">
+            <div className="round-confirm-copy">
+              <strong>
+                Iniciar Rodada {currentExamRound + 1} em Branco (sem perder seu histórico)?
+              </strong>
+              <p className="muted-note">
+                {currentRoundStats.answeredCount > 0
+                  ? `A Rodada ${currentExamRound} (${currentRoundStats.answeredCount}/120 julgadas · ${currentRoundStats.netScore.toFixed(2)} pts · ${currentRoundStats.correctCount}C / ${currentRoundStats.wrongCount}E) será arquivada com marco na Evolução Temporal antes de limpar as marcações.`
+                  : `Os cartões desta rodada serão preparados para a Rodada ${currentExamRound + 1}.`}{' '}
+                Todas as suas <strong>anotações pessoais</strong> e{' '}
+                <strong>respostas das rodadas anteriores</strong> continuam salvas.
+              </p>
+              <label className="toggle-pill">
+                <input
+                  type="checkbox"
+                  checked={keepFlagsOnNewRound}
+                  onChange={(e) => setKeepFlagsOnNewRound(e.target.checked)}
+                />
+                <span>Manter marcadores &quot;Revisar depois&quot; para a próxima rodada</span>
+              </label>
+            </div>
+            <div className="round-confirm-actions">
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  const archivedSummary =
+                    currentRoundStats.answeredCount > 0
+                      ? `Rodada ${currentExamRound} arquivada (${currentRoundStats.netScore.toFixed(2)} pts). `
+                      : '';
+                  onStartNewRound({ keepFlags: keepFlagsOnNewRound });
+                  setRevealedIds({});
+                  setStatusFilter('all');
+                  setConfirmNewRoundOpen(false);
+                  setRoundStartedBanner(
+                    `${archivedSummary}Você está na Rodada ${currentExamRound + 1} com os cartões em branco! Responda normalmente para comparar sua evolução.`
+                  );
+                }}
+              >
+                <RotateCcw size={14} /> Confirmar Rodada {currentExamRound + 1}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                onClick={() => setConfirmNewRoundOpen(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="filter-bar">
           <div className="search-input-wrap">
@@ -286,10 +433,17 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
             aria-label="Filtrar status"
           >
             <option value="all">Todos ({allQuestions.length})</option>
-            <option value="unanswered">Não respondidas</option>
-            <option value="wrong">Minhas erradas</option>
-            <option value="correct">Minhas certas</option>
+            <option value="unanswered">Não respondidas (Rodada {currentExamRound})</option>
+            <option value="wrong">Minhas erradas (Rodada {currentExamRound})</option>
+            <option value="correct">Minhas certas (Rodada {currentExamRound})</option>
             <option value="flagged">Marcadas p/ revisar</option>
+            {examRoundsHistory.length > 0 && (
+              <>
+                <option value="previously_wrong">Errei em rodadas anteriores</option>
+                <option value="evolved">Evoluí nesta rodada (Erro → Acerto)</option>
+                <option value="regressed">Regredi nesta rodada (Acerto → Erro)</option>
+              </>
+            )}
             <option value="annulled_or_changed">Anuladas / Alteradas</option>
           </select>
         </div>
@@ -354,12 +508,12 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
             <div className="q-nav-arrows">
               <button
                 type="button"
-                className={`btn btn-icon ${attempt?.flaggedForReview ? 'btn-flag-active' : ''}`}
+                className={`btn btn-icon ${currentFlagged ? 'btn-flag-active' : ''}`}
                 onClick={() => onToggleFlag(currentQuestion.id)}
                 title="Marcar item no caderno de revisão"
               >
                 <Bookmark size={16} />
-                <span>{attempt?.flaggedForReview ? 'Marcada' : 'Revisar depois'}</span>
+                <span>{currentFlagged ? 'Marcada' : 'Revisar depois'}</span>
               </button>
 
               <button
@@ -516,6 +670,58 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
             <div className={`outcome-banner ${outcomeLabel.cls}`}>{outcomeLabel.text}</div>
           )}
 
+          {/* Comparativo entre rodadas (só aparece após responder ou revelar para não dar spoiler) */}
+          {(attempt || isRevealed) && questionTimeline.length > 0 && examRoundsHistory.length > 0 && (
+            <div className={`round-history-box round-transition-${roundTransition}`}>
+              <div className="round-history-head">
+                <strong>Histórico desta questão entre rodadas</strong>
+                {roundTransition === 'evolved' && (
+                  <span className="round-trans-badge is-evolved">Evoluiu vs. Rodada {prevRoundMatch?.round}!</span>
+                )}
+                {roundTransition === 'regressed' && (
+                  <span className="round-trans-badge is-regressed">Atenção: acertou na R{prevRoundMatch?.round} e errou agora</span>
+                )}
+                {roundTransition === 'persistent_wrong' && (
+                  <span className="round-trans-badge is-persistent">Reincidente — vale revisar a aula abaixo</span>
+                )}
+                {roundTransition === 'maintained' && (
+                  <span className="round-trans-badge is-maintained">Consistente (acerto mantido)</span>
+                )}
+              </div>
+              <div className="round-history-chips">
+                {questionTimeline.map((entry) => {
+                  const isCurrent = entry.round === currentExamRound && Boolean(attempt);
+                  const out =
+                    currentQuestion.officialAnswer === 'X'
+                      ? 'Anulada'
+                      : entry.mark === 'B'
+                      ? 'Branco'
+                      : entry.mark === currentQuestion.officialAnswer
+                      ? 'Certo ✓'
+                      : 'Errado ✗';
+                  const chipTone =
+                    currentQuestion.officialAnswer === 'X'
+                      ? 'neutral'
+                      : entry.mark === 'B'
+                      ? 'blank'
+                      : entry.mark === currentQuestion.officialAnswer
+                      ? 'right'
+                      : 'wrong';
+                  return (
+                    <span
+                      key={`${entry.round}-${entry.answeredAt}`}
+                      className={`round-chip chip-${chipTone}`}
+                      title={new Date(entry.answeredAt).toLocaleString('pt-BR')}
+                    >
+                      R{entry.round}
+                      {isCurrent ? ' (atual)' : ''}: {entry.mark} ({out})
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Pré-requisitos sempre visíveis antes ou depois para orientar estudo */}
           <div className="prereq-strip">
             <div className="prereq-strip-head">
@@ -658,7 +864,7 @@ export const QuestionLabView: React.FC<QuestionLabViewProps> = ({
                 <textarea
                   id={`note-${currentQuestion.id}`}
                   rows={3}
-                  value={attempt?.selfNote ?? ''}
+                  value={currentNote}
                   onChange={(e) => onSaveNote(currentQuestion.id, e.target.value)}
                   placeholder="Ex.: Errei por esquecer que na Lei de Walras os preços multiplicam as demandas excedentes..."
                 />

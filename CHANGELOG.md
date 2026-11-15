@@ -1,12 +1,17 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`, `v1.3.10`, `v1.3.11`, `v1.3.12`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`, `v1.3.10`, `v1.3.11`, `v1.3.12`, `v1.4.0`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.12] — 2026-11-15 · Correção do Rodapé no Modo Noturno, Sépia e Suave
+## [v1.4.0] — 2026-11-15 · Sistema de Rodadas & Histórico de Tentativas por Questão
+- Adicionado suporte completo a **Rodadas de Estudo (`Rodada 1`, `Rodada 2`, ...)** com botão **`Nova Rodada em Branco`** em **Questões + Aulas** e no **Simulado 2024**.
+- Ao iniciar nova rodada, a rodada atual é congelada integralmente em `examRoundsHistory` + registrada automaticamente na **Evolução Temporal**, preservando todas as **anotações pessoais** (`questionNotes`) e opcionalmente os marcadores **`Revisar depois`** (`questionFlags`).
+- Após responder ou revelar cada questão, exibe o comparativo com as rodadas anteriores (sem dar spoiler antes): **Evolução (`Erro/Branco → Acerto`)**, **Regressão (`Acerto → Erro`)**, **Reincidência** ou **Consistência**, além de novos filtros no Lab e comparativo completo na **Curva de Evolução Temporal** e no resultado do **Simulado**.
+
+## [v1.3.12] — 2026-11-15 · Correção do Rodapé no Modo Noturno, Sépia e Suave (`1a7c686`)
 - Substituído o fundo branco fixo de `.site-footer` (`rgba(255, 255, 255, 0.86)`) pela variável temática `--footer-bg` em todos os 4 temas (`claro`, `suave`, `sepia` e `noturno`), eliminando o contraste claro no rodapé durante o modo noturno.
 
 ## [v1.3.11] — 2026-11-15 · Autorização Oficial Bacen 2027 (Portaria MGI nº 5.508/2026) (`67c9313`)

@@ -121,11 +121,31 @@ export interface DiscursivePart {
   };
 }
 
+export interface QuestionAttemptEntry {
+  mark: UserMark;
+  answeredAt: string;
+  round: number;
+  source?: 'lab' | 'simulator';
+}
+
 export interface QuestionAttempt {
   mark: UserMark;
   updatedAt: string;
   flaggedForReview?: boolean;
   selfNote?: string;
+  history?: QuestionAttemptEntry[];
+}
+
+export interface ExamRoundSnapshot {
+  round: number;
+  label: string;
+  archivedAt: string;
+  attempts: Record<number, QuestionAttempt>;
+  netScore: number;
+  answeredCount: number;
+  correctCount: number;
+  wrongCount: number;
+  blankCount: number;
 }
 
 export interface EditalChecklistItem {
@@ -207,6 +227,10 @@ export interface TrainerProfile {
   subjectRatings: Record<SubjectId, KnowledgeRating>;
   topicStatuses: Record<string, TopicStatus>;
   questionAttempts: Record<number, QuestionAttempt>;
+  currentExamRound?: number;
+  examRoundsHistory?: ExamRoundSnapshot[];
+  questionNotes?: Record<number, string>;
+  questionFlags?: Record<number, boolean>;
   discursiveDrafts: Record<'P3' | 'P4', string>;
   editalProgress: Record<string, EditalItemProgress>;
   evolutionHistory: EvolutionMilestone[];
