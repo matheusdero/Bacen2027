@@ -1,12 +1,15 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.7] — 2026-11-15 · Transição Suave com Desfoque Entre Telas & Modais
+## [v1.3.8] — 2026-11-15 · Ajuste Visual no Diagnóstico do Edital
+- Na aba **Evolução do Edital** (`Diagnóstico do Treinador Dentro do Edital`), o botão **`Revisar aula`** passou a ficar empilhado logo abaixo da pílula de percentual, eliminando o excesso de espaço em branco e dando mais área útil ao texto dos itens.
+
+## [v1.3.7] — 2026-11-15 · Transição Suave com Desfoque Entre Telas & Modais (`34d64b4`)
 - Transição direcional em `360ms` com desfoque gradual (`blur(10px) -> blur(0px)`), leve deslizamento horizontal conforme a ordem da aba e curva exponencial suave ao trocar de tela no menu.
 - Abertura suave com desfoque e escala leve também aplicada aos modais de Sincronização e Controle de Versões (respeitando `prefers-reduced-motion`).
 

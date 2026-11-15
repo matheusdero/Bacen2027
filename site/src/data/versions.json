@@ -1,14 +1,29 @@
 [
   {
-    "id": "v1.3.7",
+    "id": "v1.3.8",
     "ref": "main",
+    "tag": "v1.3.8",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Ajuste Visual no Diagnóstico do Edital",
+    "summary": "Reorganização do bloco Diagnóstico do Treinador Dentro do Edital empilhando o botão 'Revisar aula' logo abaixo da pílula de percentual para eliminar espaço em branco.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Em Evolução do Edital > Diagnóstico do Treinador, o botão 'Revisar aula' agora fica alinhado diretamente abaixo do percentual de acerto.",
+      "Redução do espaço em branco horizontal à direita, dando mais largura de leitura ao título de cada tópico crítico."
+    ]
+  },
+  {
+    "id": "v1.3.7",
+    "ref": "34d64b4",
     "tag": "v1.3.7",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Transição Suave com Desfoque Entre Telas & Modais",
     "summary": "Efeito visual de transição suave com desfoque direcional (blur-dissolve) ao alternar entre as abas do menu principal e ao abrir janelas modais.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Transição direcional de entrada em 360ms com desfoque suave (10px -> 0px) e leve deslizamento ao trocar de aba no menu superior.",
       "Preservação automática da fixação (sticky) das barras laterais de aulas e gabarito após concluir a animação.",

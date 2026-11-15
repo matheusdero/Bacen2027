@@ -2538,13 +2538,20 @@ textarea {
 
 .diag-metrics {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 5px;
   font-size: 0.82rem;
   color: var(--text-muted);
   flex-shrink: 0;
+}
+
+.diag-metrics .tier-pill,
+.diag-metrics .btn-link-sm {
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-link-sm {
@@ -3969,7 +3976,8 @@ textarea {
   }
 
   .diag-metrics {
-    justify-content: flex-start;
+    align-items: stretch;
+    align-self: flex-start;
   }
 
   .sim-correction-inline {
