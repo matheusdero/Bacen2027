@@ -6,16 +6,12 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Cloud,
-  CloudOff,
   Compass,
   Download,
   FileEdit,
   History,
   LayoutDashboard,
   ListChecks,
-  RefreshCw,
-  ShieldCheck,
   Target,
   X,
 } from 'lucide-react';
@@ -183,24 +179,22 @@ export const App: React.FC = () => {
         <div className="top-nav-inner">
           <div className="brand-block">
             <div className="brand-mark">
-              <ShieldCheck size={20} />
+              <img src="./favicon.svg" alt="BACEN 2027" className="brand-app-icon" />
             </div>
             <div>
               <div className="brand-title-row">
-                <div className="brand-title">BACEN 2027 · Treinador Pessoal</div>
+                <div className="brand-title">BACEN 2027</div>
                 <button
                   type="button"
-                  className="version-pill-btn"
+                  className="version-micro-btn"
                   onClick={() => setVersionModalOpen(true)}
-                  title="Ver histórico de alterações (Changelog) e versões anteriores"
+                  title="Ver histórico de versões e edições anteriores"
+                  aria-label={`Versão ${CURRENT_RELEASE.id} — abrir histórico`}
                 >
-                  <History size={11} />
-                  <span>{CURRENT_RELEASE.id}</span>
+                  {CURRENT_RELEASE.id}
                 </button>
               </div>
-              <div className="brand-sub">
-                Cargo 1 · Analista em Economia e Finanças · {CURRENT_RELEASE.edition}
-              </div>
+              <div className="brand-sub">Cargo 1 · Economia e Finanças</div>
             </div>
           </div>
 
@@ -278,47 +272,41 @@ export const App: React.FC = () => {
               onReset={resetComfort}
             />
 
-            <button
-              type="button"
-              className={`user-sync-pill sync-pill-${syncStatus}`}
-              onClick={() => setSyncModalOpen(true)}
-              title="Gerenciar perfil e sincronização em nuvem (GitHub Gist)"
-            >
-              <span className="user-initials">
-                {(profile.candidateName || 'MT')
+            {(() => {
+              const displayName = profile.candidateName || 'Matheus Torrente';
+              const initials =
+                displayName
                   .split(' ')
                   .filter(Boolean)
                   .slice(0, 2)
                   .map((w) => w[0].toUpperCase())
-                  .join('')}
-              </span>
-              <span className="user-sync-text">
-                <strong className="user-name-label">{profile.candidateName || 'Matheus Torrente'}</strong>
-                <span className="user-sync-sub">
-                  {syncStatus === 'syncing' ? (
-                    <>
-                      <RefreshCw size={11} className="spin-icon" /> Sincronizando...
-                    </>
-                  ) : syncStatus === 'synced' ? (
-                    <>
-                      <Cloud size={11} /> Gist OK
-                    </>
-                  ) : syncStatus === 'stale' ? (
-                    <>
-                      <AlertTriangle size={11} /> Desatualizado
-                    </>
-                  ) : syncStatus === 'conflict' ? (
-                    'Conflito Sync'
-                  ) : syncStatus === 'error' ? (
-                    'Erro Sync'
-                  ) : (
-                    <>
-                      <CloudOff size={11} /> Local (Conectar Gist)
-                    </>
-                  )}
-                </span>
-              </span>
-            </button>
+                  .join('') || 'MT';
+              const syncLabel =
+                syncStatus === 'syncing'
+                  ? 'Sincronizando com o GitHub Gist...'
+                  : syncStatus === 'synced'
+                  ? 'Sincronizado (Gist OK)'
+                  : syncStatus === 'stale'
+                  ? 'Desatualizado — outro aparelho salvou progresso mais recente'
+                  : syncStatus === 'conflict'
+                  ? 'Conflito de sincronização detectado'
+                  : syncStatus === 'error'
+                  ? 'Erro na sincronização'
+                  : 'Local (clique para conectar GitHub Gist)';
+              const tooltip = `${displayName} · ${syncLabel}`;
+
+              return (
+                <button
+                  type="button"
+                  className={`user-avatar-btn sync-pill-${syncStatus}`}
+                  onClick={() => setSyncModalOpen(true)}
+                  title={tooltip}
+                  aria-label={tooltip}
+                >
+                  <span className="user-initials">{initials}</span>
+                </button>
+              );
+            })()}
 
             <button
               type="button"

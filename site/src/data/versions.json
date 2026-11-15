@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.4",
+    "id": "v1.3.5",
     "ref": "main",
+    "tag": "v1.3.5",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Cabeçalho Minimalista, Logo Bacen & Avatar por Borda",
+    "summary": "Identidade visual minimalista na barra superior: ícone institucional como logo do app, título limpo 'BACEN 2027', controle de brilho apenas com ícone + percentual e avatar circular com borda indicadora de sincronização.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Ícone institucional do app (favicon e marca) usado como logo de 'BACEN 2027', removendo 'Treinador Pessoal' e tornando o indicador de versão discreto.",
+      "Botão de tema/brilho reduzido para apenas o ícone atual e o percentual de brilho.",
+      "Avatar circular apenas com as iniciais do usuário, usando cores na borda para indicar status (sincronizado, desatualizado, sincronizando ou local/erro)."
+    ]
+  },
+  {
+    "id": "v1.3.4",
+    "ref": "b017d60",
     "tag": "v1.3.4",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Menu Superior Centralizado & Abas por Ícone com Hover",
     "summary": "Centralização geométrica da navegação superior em todas as telas e exibição compacta apenas por ícones nas abas inativas (revelando o nome ao passar o mouse ou selecionar).",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Centralização do conjunto de abas no cabeçalho tanto em monitores largos quanto em notebooks e tablets/celulares.",
       "Abas não selecionadas exibem apenas os ícones por padrão, expandindo suavemente para mostrar o título (e contador) ao passar o mouse ou focar.",

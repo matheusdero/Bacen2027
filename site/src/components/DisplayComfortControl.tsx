@@ -87,13 +87,11 @@ export const DisplayComfortControl: React.FC<DisplayComfortControlProps> = ({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        title="Ajustar brilho, tom claro suave e conforto para madrugada"
+        aria-label={`Tema ${currentThemeLabel}, brilho ${settings.brightness}%`}
+        title={`Tema ${currentThemeLabel} · Brilho ${settings.brightness}% — clique para ajustar`}
       >
-        <ThemeIcon size={16} />
-        <span className="comfort-trigger-text">
-          <span className="comfort-trigger-mode">{currentThemeLabel}</span>
-          <span className="comfort-trigger-pct">{settings.brightness}%</span>
-        </span>
+        <ThemeIcon size={15} />
+        <span className="comfort-trigger-pct">{settings.brightness}%</span>
       </button>
 
       {open && (

@@ -1,12 +1,17 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.4] — 2026-11-15 · Menu Superior Centralizado & Abas por Ícone com Hover
+## [v1.3.5] — 2026-11-15 · Cabeçalho Minimalista, Logo Bacen & Avatar por Borda
+- Novo ícone SVG institucional do app (`favicon.svg`) usado simultaneamente como favicon do navegador e logo de **`BACEN 2027`**, removendo o subtítulo anterior e deixando a versão discreta.
+- Botão de conforto visual reduzido para ícone + percentual de brilho.
+- Perfil no topo substituído por avatar circular com as iniciais do usuário e borda colorida indicadora de sincronização (verde = sincronizado, âmbar = desatualizado, azul pulsante = sincronizando, vermelho = erro/conflito, neutro = local).
+
+## [v1.3.4] — 2026-11-15 · Menu Superior Centralizado & Abas por Ícone com Hover (`b017d60`)
 - Centralização completa do menu de abas na barra superior em desktops, notebooks e dispositivos móveis.
 - Abas não selecionadas agora mostram apenas seus ícones, revelando o nome (e contadores de progresso) ao passar o mouse por cima; ao clicar, o nome permanece fixo na aba ativa.
 

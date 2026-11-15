@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="6" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#173b6c" />
+      <stop offset="100%" stop-color="#091930" />
+    </linearGradient>
+    <linearGradient id="accent" x1="16" y1="16" x2="48" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#93c5fd" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="gold" x1="20" y1="14" x2="46" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fde68a" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)" stroke="#60a5fa" stroke-opacity="0.4" stroke-width="2" />
+  <!-- Pediment / Bank Roof -->
+  <path d="M32 13L50 22.5H14L32 13Z" fill="url(#gold)" />
+  <rect x="14" y="24.5" width="36" height="2.8" rx="1.4" fill="#dbeafe" fill-opacity="0.9" />
+  <!-- Institutional Pillars -->
+  <rect x="18.5" y="29.5" width="4.4" height="14.5" rx="1.5" fill="url(#accent)" />
+  <rect x="29.8" y="29.5" width="4.4" height="14.5" rx="1.5" fill="url(#accent)" />
+  <rect x="41.1" y="29.5" width="4.4" height="14.5" rx="1.5" fill="url(#accent)" />
+  <!-- Foundation Steps -->
+  <rect x="14.5" y="45.8" width="35" height="3" rx="1.5" fill="#dbeafe" />
+  <rect x="12" y="50" width="40" height="3.2" rx="1.6" fill="#60a5fa" fill-opacity="0.65" />
+</svg>
