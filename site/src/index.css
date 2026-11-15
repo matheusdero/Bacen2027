@@ -27,6 +27,7 @@
   --kpi-hi-border: #93c5fd;
   --chart-grid: #e2e8f0;
   --diagram-bg: transparent;
+  --footer-bg: rgba(255, 255, 255, 0.86);
   --radius: 14px;
   --radius-sm: 9px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -62,6 +63,7 @@
   --kpi-hi-border: #8cb2eb;
   --chart-grid: #cbd5e1;
   --diagram-bg: #e7ebf2;
+  --footer-bg: rgba(236, 239, 245, 0.88);
 }
 
 /* Papel Quente (Sépia) — leitura estilo Kindle, reduz luz azul */
@@ -94,6 +96,7 @@
   --kpi-hi-border: #b8a37e;
   --chart-grid: #d4c5a8;
   --diagram-bg: #efe6cf;
+  --footer-bg: rgba(244, 236, 216, 0.9);
 }
 
 /* Noturno — madrugada confortável sem preto absoluto nem branco forte */
@@ -126,6 +129,7 @@
   --kpi-hi-border: #3b82f6;
   --chart-grid: #293852;
   --diagram-bg: #dbe3ef;
+  --footer-bg: rgba(19, 28, 46, 0.92);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 10px 26px -6px rgba(0, 0, 0, 0.45);
   --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.45), 0 16px 32px -8px rgba(0, 0, 0, 0.55);
@@ -2314,7 +2318,7 @@ textarea {
   font-size: 0.78rem;
   color: var(--text-subtle);
   border-top: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--footer-bg);
   backdrop-filter: blur(8px);
 }
 

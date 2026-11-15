@@ -1,14 +1,28 @@
 [
   {
-    "id": "v1.3.11",
+    "id": "v1.3.12",
     "ref": "main",
+    "tag": "v1.3.12",
+    "date": "2026-11-15",
+    "edition": "Autorizado 2026 (Base 2024)",
+    "title": "Correção do Rodapé no Modo Noturno, Sépia e Suave",
+    "summary": "Substituição do fundo branco fixo de .site-footer por variável semântica --footer-bg adaptada a todos os 4 temas visuais (Claro, Suave, Papel Quente/Sépia e Noturno).",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Rodapé (.site-footer) agora respeita a paleta escura no Modo Noturno (#131c2e translúcido), além dos tons dedicados para Claro Suave e Papel Quente (Sépia)."
+    ]
+  },
+  {
+    "id": "v1.3.11",
+    "ref": "67c9313",
     "tag": "v1.3.11",
     "date": "2026-11-15",
     "edition": "Autorizado 2026 (Base 2024)",
     "title": "Autorização Oficial Bacen 2027 (Portaria MGI nº 5.508/2026)",
     "summary": "Inclusão dos dados oficiais da Portaria MGI nº 5.508/2026 no Painel & Plano, com as 170 vagas autorizadas no BCB (100 para Auditor, antigo Analista), reserva de cotas atualizada e prazos legais para edital e provas.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Novo bloco Autorização Oficial Bacen 2027 no Grupo 01 do Painel & Plano com quadro completo de vagas por cargo e cota (DOU Edição Extra nº 123-F, 03/07/2026).",
       "Destaque para Auditor do BCB (ex-Analista): 100 vagas imediatas (65 AC · 25 Pessoas Negras · 5 PcD · 3 Indígenas · 2 Quilombolas), além de Técnico (50) e Procurador (20).",

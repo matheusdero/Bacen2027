@@ -1,12 +1,15 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`, `v1.3.10`, `v1.3.11`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`, `v1.3.10`, `v1.3.11`, `v1.3.12`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.11] — 2026-11-15 · Autorização Oficial Bacen 2027 (Portaria MGI nº 5.508/2026)
+## [v1.3.12] — 2026-11-15 · Correção do Rodapé no Modo Noturno, Sépia e Suave
+- Substituído o fundo branco fixo de `.site-footer` (`rgba(255, 255, 255, 0.86)`) pela variável temática `--footer-bg` em todos os 4 temas (`claro`, `suave`, `sepia` e `noturno`), eliminando o contraste claro no rodapé durante o modo noturno.
+
+## [v1.3.11] — 2026-11-15 · Autorização Oficial Bacen 2027 (Portaria MGI nº 5.508/2026) (`67c9313`)
 - Integração dos dados oficiais da **Portaria MGI nº 5.508, de 3 de julho de 2026** (DOU Seção 1 — Edição Extra nº 123-F, pág. 11) em [benchmarks2024.ts](site/src/data/benchmarks2024.ts), no **Painel & Plano** (Hero + Grupo 01), cabeçalho, rodapé e histórico de versões.
 - Quadro completo das **170 vagas imediatas autorizadas**: **100 para Auditor (antigo Analista)** (`65 AC · 25 Negras · 5 PcD · 3 Indígenas · 2 Quilombolas`), **50 para Técnico (NI)** (`31 · 13 · 3 · 2 · 1`) e **20 para Procurador (NS)** (`13 · 5 · 1 · 1 · 0`).
 - Prazos legais destacados no painel: publicação do edital em até **6 meses** (`03/01/2027`, com previsão BCB até `30/12/2026`) e mínimo de **2 meses** entre o edital e a 1ª prova.
