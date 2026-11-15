@@ -3,7 +3,10 @@ import {
   AlertTriangle,
   Award,
   BookOpen,
+  CalendarCheck2,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Cloud,
   Compass,
   Download,
@@ -11,6 +14,7 @@ import {
   Flame,
   ListChecks,
   RotateCcw,
+  SlidersHorizontal,
   Target,
   TrendingUp,
   Upload,
@@ -44,6 +48,102 @@ import {
 } from '../types';
 import { EvolutionTimelineCard } from './EvolutionTimelineCard';
 import { StudyConsistencyCard } from './StudyConsistencyCard';
+
+type DashboardGroupId = 'alvo' | 'evolucao' | 'plano' | 'perfil';
+type GroupTone = 'blue' | 'emerald' | 'amber' | 'violet';
+
+interface DashboardGroupMeta {
+  id: DashboardGroupId;
+  number: string;
+  shortLabel: string;
+  title: string;
+  subtitle: string;
+  tone: GroupTone;
+}
+
+const DASHBOARD_GROUPS: DashboardGroupMeta[] = [
+  {
+    id: 'alvo',
+    number: '01',
+    shortLabel: 'Alvo & Régua 2024',
+    title: 'Alvo Real & Régua Oficial 2024',
+    subtitle: 'Cortes reais do Edital nº 10 (Cargo 1) e leitura estratégica da regra Cebraspe (+1 / -0,50)',
+    tone: 'blue',
+  },
+  {
+    id: 'evolucao',
+    number: '02',
+    shortLabel: 'Frequência & Evolução',
+    title: 'Frequência de Estudo & Curva Temporal',
+    subtitle: 'Dias de estudo efetivo validados, sequência atual, calendário de 12 semanas e linha do tempo',
+    tone: 'emerald',
+  },
+  {
+    id: 'plano',
+    number: '03',
+    shortLabel: 'Plano & Ataque Imediato',
+    title: 'Plano Semanal Adaptativo & Fila de Ataque',
+    subtitle: 'Calibração 0–4 por disciplina, distribuição de horas e Top 6 tópicos de maior impacto',
+    tone: 'amber',
+  },
+  {
+    id: 'perfil',
+    number: '04',
+    shortLabel: 'Perfil, 2024 & Backups',
+    title: 'Seu Perfil, Base 2024 & Segurança dos Dados',
+    subtitle: 'Configuração da jornada semanal, notas de referência BCB 2024, nuvem GitHub Gist e backups JSON',
+    tone: 'violet',
+  },
+];
+
+interface DashboardGroupProps {
+  meta: DashboardGroupMeta;
+  icon: React.ReactNode;
+  collapsed: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+/** Semantic color-coded container separating TrainerDashboard blocks for scannability. */
+const DashboardGroup: React.FC<DashboardGroupProps> = ({
+  meta,
+  icon,
+  collapsed,
+  onToggle,
+  children,
+}) => (
+  <section
+    id={`dash-group-${meta.id}`}
+    className={`dash-group dash-group--${meta.tone} ${collapsed ? 'dash-group--collapsed' : ''}`}
+    aria-label={`Grupo ${meta.number}: ${meta.title}`}
+  >
+    <div className="dash-group-header">
+      <div className="dash-group-title-wrap">
+        <span className="dash-group-pill">
+          {icon}
+          <span>Grupo {meta.number}</span>
+        </span>
+        <div>
+          <h2 className="dash-group-title">{meta.title}</h2>
+          <p className="dash-group-subtitle">{meta.subtitle}</p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="dash-group-toggle"
+        onClick={onToggle}
+        aria-expanded={!collapsed}
+        title={collapsed ? `Expandir ${meta.title}` : `Recolher ${meta.title}`}
+      >
+        <span>{collapsed ? 'Expandir' : 'Recolher'}</span>
+        {collapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
+      </button>
+    </div>
+
+    {!collapsed && <div className="dash-group-body">{children}</div>}
+  </section>
+);
 
 interface TrainerDashboardProps {
   profile: TrainerProfile;
@@ -98,6 +198,26 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [calibrationNotice, setCalibrationNotice] = useState<AutoCalibrationResult | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<DashboardGroupId, boolean>>({
+    alvo: false,
+    evolucao: false,
+    plano: false,
+    perfil: false,
+  });
+
+  const toggleGroup = (id: DashboardGroupId) => {
+    setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const jumpToGroup = (id: DashboardGroupId) => {
+    setCollapsedGroups((prev) => (prev[id] ? { ...prev, [id]: false } : prev));
+    window.requestAnimationFrame(() => {
+      const el = document.getElementById(`dash-group-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  };
 
   const questionMap = useMemo(
     () => new Map<number, QuestionItem>(allQuestions.map((q) => [q.id, q])),
@@ -284,212 +404,31 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Navegação rápida por grupos temáticos */}
+        <nav className="dash-group-nav" aria-label="Ir para grupo do painel">
+          {DASHBOARD_GROUPS.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              className={`dash-group-nav-pill dash-group-nav-pill--${g.tone}`}
+              onClick={() => jumpToGroup(g.id)}
+            >
+              <span className="dash-group-nav-dot" aria-hidden="true" />
+              <strong>{g.number}</strong>
+              <span>{g.shortLabel}</span>
+            </button>
+          ))}
+        </nav>
       </section>
 
-      {/* Linha de Diagnóstico 2024 + Benchmarks Reais */}
-      <div className="two-col-grid">
-        <section className="card">
-          <div className="card-header">
-            <h2>
-              <FileSpreadsheet size={18} /> Seu Diagnóstico &amp; Perfil de Estudo
-            </h2>
-            <span className="badge badge-info">Salvo localmente</span>
-          </div>
-
-          <div className="form-grid">
-            <label className="field">
-              <span>Seu nome / apelido</span>
-              <input
-                type="text"
-                value={profile.candidateName}
-                onChange={(e) => onUpdateField('candidateName', e.target.value)}
-                placeholder="Ex.: Analista BCB 2027"
-              />
-            </label>
-
-            <label className="field">
-              <span>Modalidade de concorrência</span>
-              <select
-                value={profile.targetTrack}
-                onChange={(e) =>
-                  onUpdateField('targetTrack', e.target.value as 'AC' | 'PcD' | 'PP')
-                }
-              >
-                <option value="AC">Ampla Concorrência (AC)</option>
-                <option value="PP">Pessoas Pretas / Pardas (PP)</option>
-                <option value="PcD">Pessoa com Deficiência (PcD)</option>
-              </select>
-            </label>
-
-            <label className="field">
-              <span>Horas líquidas por semana: {profile.weeklyHours}h</span>
-              <input
-                type="range"
-                min={6}
-                max={42}
-                step={1}
-                value={profile.weeklyHours}
-                onChange={(e) => onUpdateField('weeklyHours', Number(e.target.value))}
-              />
-            </label>
-
-            <label className="field checkbox-field">
-              <input
-                type="checkbox"
-                checked={profile.did2024Exam}
-                onChange={(e) => onUpdateField('did2024Exam', e.target.checked)}
-              />
-              <span>Fiz a prova BCB 2024 (Economia e Finanças)</span>
-            </label>
-          </div>
-
-          {profile.did2024Exam && (
-            <div className="scores-2024-box">
-              <div className="subhead">Suas notas no Bacen 2024 (opcional — calibra a meta)</div>
-              <div className="three-col-inputs">
-                <label className="field">
-                  <span>P1 (máx 50)</span>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min={-25}
-                    max={50}
-                    placeholder="Ex: 34.5"
-                    value={profile.score2024P1 ?? ''}
-                    onChange={(e) =>
-                      onUpdateField(
-                        'score2024P1',
-                        e.target.value === '' ? undefined : Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <span>P2 (máx 70)</span>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min={-35}
-                    max={70}
-                    placeholder="Ex: 42.0"
-                    value={profile.score2024P2 ?? ''}
-                    onChange={(e) =>
-                      onUpdateField(
-                        'score2024P2',
-                        e.target.value === '' ? undefined : Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-                <label className="field">
-                  <span>P3+P4 (máx 80)</span>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min={0}
-                    max={80}
-                    placeholder="Ex: 60.0"
-                    value={profile.score2024Disc ?? ''}
-                    onChange={(e) =>
-                      onUpdateField(
-                        'score2024Disc',
-                        e.target.value === '' ? undefined : Number(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-              </div>
-              {has2024Scores && (
-                <div className="coach-feedback-inline">
-                  <strong>Leitura do Treinador:</strong> Sua objetiva em 2024 somou{' '}
-                  <strong>{user2024TotalObj.toFixed(2)} pts</strong> contra o corte de{' '}
-                  <strong>{trackBench.cutoffObj.toFixed(2)} pts</strong> para correção da
-                  discursiva em {profile.targetTrack} (diferença de{' '}
-                  <span
-                    className={
-                      user2024TotalObj >= trackBench.cutoffObj ? 'text-good' : 'text-warn'
-                    }
-                  >
-                    {(user2024TotalObj - trackBench.cutoffObj >= 0 ? '+' : '') +
-                      (user2024TotalObj - trackBench.cutoffObj).toFixed(2)}{' '}
-                    pts
-                  </span>
-                  ).{' '}
-                  {profile.score2024P1 !== undefined &&
-                  profile.score2024P1 < EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP1
-                    ? 'Atenção à P1: Português (25 itens) + Estatística P1 (10 itens) são alavancas rápidas de pontos líquidos!'
-                    : 'Mantenha P1 alta e ataque os gargalos da P2 (Macro, Finanças, Econometria e COSIF).'}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Exportar / Importar Backup & Nuvem */}
-          <div className="backup-row">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onOpenSyncModal}
-            >
-              <Cloud size={15} />
-              {syncStatus === 'synced' && githubLogin
-                ? `Nuvem (@${githubLogin})`
-                : syncStatus === 'conflict'
-                ? 'Resolver Sync Nuvem'
-                : 'Sincronizar no GitHub Gist'}
-            </button>
-            <button type="button" className="btn btn-outline" onClick={onExportJson}>
-              <Download size={15} /> Exportar (.json)
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload size={15} /> Importar Backup
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/json"
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-            {!confirmReset ? (
-              <button
-                type="button"
-                className="btn btn-ghost-danger"
-                onClick={() => setConfirmReset(true)}
-              >
-                <RotateCcw size={15} /> Resetar
-              </button>
-            ) : (
-              <div className="confirm-inline">
-                <span>Apagar tudo?</span>
-                <button
-                  type="button"
-                  className="btn btn-danger-sm"
-                  onClick={() => {
-                    onReset();
-                    setConfirmReset(false);
-                  }}
-                >
-                  Confirmar
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline-sm"
-                  onClick={() => setConfirmReset(false)}
-                >
-                  Cancelar
-                </button>
-              </div>
-            )}
-          </div>
-          {importFeedback && <div className="toast-inline">{importFeedback}</div>}
-        </section>
-
-        {/* Régua Real de Aprovação 2024 */}
+      {/* GRUPO 01 — Alvo Real & Régua Oficial 2024 */}
+      <DashboardGroup
+        meta={DASHBOARD_GROUPS[0]}
+        icon={<Award size={14} />}
+        collapsed={collapsedGroups.alvo}
+        onToggle={() => toggleGroup('alvo')}
+      >
         <section className="card">
           <div className="card-header">
             <h2>
@@ -498,74 +437,88 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             <span className="badge">{EXAM_BENCHMARKS_2024.applicantsTotal.toLocaleString('pt-BR')} inscritos</span>
           </div>
 
-          <div className="bench-summary-list">
-            <div className="bench-row">
-              <span>Corte mínimos do Edital</span>
-              <strong>
-                P1 ≥ 10,00 · P2 ≥ 21,00 · Obj ≥ 36,00 · Disc ≥ 40,00
-              </strong>
+          <div className="bench-insight-grid">
+            <div className="bench-summary-list">
+              <div className="bench-row">
+                <span>Corte mínimos do Edital</span>
+                <strong>
+                  P1 ≥ 10,00 · P2 ≥ 21,00 · Obj ≥ 36,00 · Disc ≥ 40,00
+                </strong>
+              </div>
+              <div className="bench-row">
+                <span>Corte real 161ª posição AC (ir p/ discursiva)</span>
+                <strong>{EXAM_BENCHMARKS_2024.realResultsEd10.AC.cutoffNFPO.toFixed(2)} / 120 pts</strong>
+              </div>
+              <div className="bench-row">
+                <span>Mediana dos 164 AC com discursiva corrigida</span>
+                <strong>
+                  {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianNFPO.toFixed(2)} pts (P1{' '}
+                  {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP1.toFixed(2)} + P2{' '}
+                  {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP2.toFixed(2)})
+                </strong>
+              </div>
+              <div className="bench-row">
+                <span>Mediana Discursivas AC (P3 30pts + P4 50pts)</span>
+                <strong>
+                  P3: {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP3.toFixed(2)} · P4:{' '}
+                  {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP4.toFixed(2)}
+                </strong>
+              </div>
+              <div className="bench-row">
+                <span>Corte Vagas Imediatas (#37 AC / #10 PP / #3 PcD)</span>
+                <strong>
+                  164,05 AC · 154,80 PP · 160,69 PcD (de 200 pts)
+                </strong>
+              </div>
+              <div className="bench-row">
+                <span>Corte Cadastro Reserva (#112 AC / #30 PP / #8 PcD)</span>
+                <strong>149,81 AC · 142,52 PP · 138,56 PcD</strong>
+              </div>
             </div>
-            <div className="bench-row">
-              <span>Corte real 161ª posição AC (ir p/ discursiva)</span>
-              <strong>{EXAM_BENCHMARKS_2024.realResultsEd10.AC.cutoffNFPO.toFixed(2)} / 120 pts</strong>
-            </div>
-            <div className="bench-row">
-              <span>Mediana dos 164 AC com discursiva corrigida</span>
-              <strong>
-                {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianNFPO.toFixed(2)} pts (P1{' '}
-                {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP1.toFixed(2)} + P2{' '}
-                {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP2.toFixed(2)})
-              </strong>
-            </div>
-            <div className="bench-row">
-              <span>Mediana Discursivas AC (P3 30pts + P4 50pts)</span>
-              <strong>
-                P3: {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP3.toFixed(2)} · P4:{' '}
-                {EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP4.toFixed(2)}
-              </strong>
-            </div>
-            <div className="bench-row">
-              <span>Corte Vagas Imediatas (#37 AC / #10 PP / #3 PcD)</span>
-              <strong>
-                164,05 AC · 154,80 PP · 160,69 PcD (de 200 pts)
-              </strong>
-            </div>
-            <div className="bench-row">
-              <span>Corte Cadastro Reserva (#112 AC / #30 PP / #8 PcD)</span>
-              <strong>149,81 AC · 142,52 PP · 138,56 PcD</strong>
-            </div>
-          </div>
 
-          <div className="coach-callout">
-            <AlertTriangle size={18} />
-            <div>
-              <strong>Insight crucial do Treinador sobre a regra Cebraspe (+1 / -0,50):</strong>{' '}
-              Na AC de 2024, o corte real da objetiva (<strong>84,50</strong>) foi 48,5 pontos acima do
-              mínimo formal do edital (36,00). Com P1+P2 = 120 itens, chutar sem critério destrói a nota:
-              cada erro anula meio acerto. Deixar 12–18 itens duvidosos em branco e acertar ~92–96
-              coloca você na disputa pelas <strong>vagas imediatas</strong>!
+            <div className="coach-callout bench-callout-fill">
+              <AlertTriangle size={18} />
+              <div>
+                <strong>Insight crucial do Treinador sobre a regra Cebraspe (+1 / -0,50):</strong>{' '}
+                Na AC de 2024, o corte real da objetiva (<strong>84,50</strong>) foi 48,5 pontos acima do
+                mínimo formal do edital (36,00). Com P1+P2 = 120 itens, chutar sem critério destrói a nota:
+                cada erro anula meio acerto. Deixar 12–18 itens duvidosos em branco e acertar ~92–96
+                coloca você na disputa pelas <strong>vagas imediatas</strong>!
+              </div>
             </div>
           </div>
         </section>
-      </div>
+      </DashboardGroup>
 
-      {/* Frequência de Estudo Real (Dias Validados & Calendário) */}
-      <StudyConsistencyCard
-        studyDays={profile.studyDays}
-        todayProgress={todayStudyProgress}
-      />
+      {/* GRUPO 02 — Frequência de Estudo & Curva Temporal */}
+      <DashboardGroup
+        meta={DASHBOARD_GROUPS[1]}
+        icon={<CalendarCheck2 size={14} />}
+        collapsed={collapsedGroups.evolucao}
+        onToggle={() => toggleGroup('evolucao')}
+      >
+        <StudyConsistencyCard
+          studyDays={profile.studyDays}
+          todayProgress={todayStudyProgress}
+        />
 
-      {/* Curva de Evolução Temporal & Marcos */}
-      <EvolutionTimelineCard
-        profile={profile}
-        allQuestions={allQuestions}
-        editalSummary={editalSummary}
-        overallStats={overallStats}
-        onAddMilestone={onAddMilestone}
-        onDeleteMilestone={onDeleteMilestone}
-      />
+        <EvolutionTimelineCard
+          profile={profile}
+          allQuestions={allQuestions}
+          editalSummary={editalSummary}
+          overallStats={overallStats}
+          onAddMilestone={onAddMilestone}
+          onDeleteMilestone={onDeleteMilestone}
+        />
+      </DashboardGroup>
 
-      {/* Autoavaliação e Plano Semanal Adaptativo */}
+      {/* GRUPO 03 — Plano Semanal Adaptativo & Fila de Ataque */}
+      <DashboardGroup
+        meta={DASHBOARD_GROUPS[2]}
+        icon={<TrendingUp size={14} />}
+        collapsed={collapsedGroups.plano}
+        onToggle={() => toggleGroup('plano')}
+      >
       <section className="card">
         <div className="card-header">
           <div>
@@ -852,6 +805,216 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           })}
         </div>
       </section>
+      </DashboardGroup>
+
+      {/* GRUPO 04 — Seu Perfil, Base 2024 & Segurança dos Dados */}
+      <DashboardGroup
+        meta={DASHBOARD_GROUPS[3]}
+        icon={<SlidersHorizontal size={14} />}
+        collapsed={collapsedGroups.perfil}
+        onToggle={() => toggleGroup('perfil')}
+      >
+        <section className="card">
+          <div className="card-header">
+            <h2>
+              <FileSpreadsheet size={18} /> Seu Diagnóstico &amp; Perfil de Estudo
+            </h2>
+            <span className="badge badge-info">Salvo localmente</span>
+          </div>
+
+          <div className="form-grid">
+            <label className="field">
+              <span>Seu nome / apelido</span>
+              <input
+                type="text"
+                value={profile.candidateName}
+                onChange={(e) => onUpdateField('candidateName', e.target.value)}
+                placeholder="Ex.: Analista BCB 2027"
+              />
+            </label>
+
+            <label className="field">
+              <span>Modalidade de concorrência</span>
+              <select
+                value={profile.targetTrack}
+                onChange={(e) =>
+                  onUpdateField('targetTrack', e.target.value as 'AC' | 'PcD' | 'PP')
+                }
+              >
+                <option value="AC">Ampla Concorrência (AC)</option>
+                <option value="PP">Pessoas Pretas / Pardas (PP)</option>
+                <option value="PcD">Pessoa com Deficiência (PcD)</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Horas líquidas por semana: {profile.weeklyHours}h</span>
+              <input
+                type="range"
+                min={6}
+                max={42}
+                step={1}
+                value={profile.weeklyHours}
+                onChange={(e) => onUpdateField('weeklyHours', Number(e.target.value))}
+              />
+            </label>
+
+            <label className="field checkbox-field">
+              <input
+                type="checkbox"
+                checked={profile.did2024Exam}
+                onChange={(e) => onUpdateField('did2024Exam', e.target.checked)}
+              />
+              <span>Fiz a prova BCB 2024 (Economia e Finanças)</span>
+            </label>
+          </div>
+
+          {profile.did2024Exam && (
+            <div className="scores-2024-box">
+              <div className="subhead">Suas notas no Bacen 2024 (opcional — calibra a meta)</div>
+              <div className="three-col-inputs">
+                <label className="field">
+                  <span>P1 (máx 50)</span>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min={-25}
+                    max={50}
+                    placeholder="Ex: 34.5"
+                    value={profile.score2024P1 ?? ''}
+                    onChange={(e) =>
+                      onUpdateField(
+                        'score2024P1',
+                        e.target.value === '' ? undefined : Number(e.target.value)
+                      )
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>P2 (máx 70)</span>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min={-35}
+                    max={70}
+                    placeholder="Ex: 42.0"
+                    value={profile.score2024P2 ?? ''}
+                    onChange={(e) =>
+                      onUpdateField(
+                        'score2024P2',
+                        e.target.value === '' ? undefined : Number(e.target.value)
+                      )
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>P3+P4 (máx 80)</span>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min={0}
+                    max={80}
+                    placeholder="Ex: 60.0"
+                    value={profile.score2024Disc ?? ''}
+                    onChange={(e) =>
+                      onUpdateField(
+                        'score2024Disc',
+                        e.target.value === '' ? undefined : Number(e.target.value)
+                      )
+                    }
+                  />
+                </label>
+              </div>
+              {has2024Scores && (
+                <div className="coach-feedback-inline">
+                  <strong>Leitura do Treinador:</strong> Sua objetiva em 2024 somou{' '}
+                  <strong>{user2024TotalObj.toFixed(2)} pts</strong> contra o corte de{' '}
+                  <strong>{trackBench.cutoffObj.toFixed(2)} pts</strong> para correção da
+                  discursiva em {profile.targetTrack} (diferença de{' '}
+                  <span
+                    className={
+                      user2024TotalObj >= trackBench.cutoffObj ? 'text-good' : 'text-warn'
+                    }
+                  >
+                    {(user2024TotalObj - trackBench.cutoffObj >= 0 ? '+' : '') +
+                      (user2024TotalObj - trackBench.cutoffObj).toFixed(2)}{' '}
+                    pts
+                  </span>
+                  ).{' '}
+                  {profile.score2024P1 !== undefined &&
+                  profile.score2024P1 < EXAM_BENCHMARKS_2024.realResultsEd10.AC.medianP1
+                    ? 'Atenção à P1: Português (25 itens) + Estatística P1 (10 itens) são alavancas rápidas de pontos líquidos!'
+                    : 'Mantenha P1 alta e ataque os gargalos da P2 (Macro, Finanças, Econometria e COSIF).'}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Exportar / Importar Backup & Nuvem */}
+          <div className="backup-row">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onOpenSyncModal}
+            >
+              <Cloud size={15} />
+              {syncStatus === 'synced' && githubLogin
+                ? `Nuvem (@${githubLogin})`
+                : syncStatus === 'conflict'
+                ? 'Resolver Sync Nuvem'
+                : 'Sincronizar no GitHub Gist'}
+            </button>
+            <button type="button" className="btn btn-outline" onClick={onExportJson}>
+              <Download size={15} /> Exportar (.json)
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload size={15} /> Importar Backup
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+            {!confirmReset ? (
+              <button
+                type="button"
+                className="btn btn-ghost-danger"
+                onClick={() => setConfirmReset(true)}
+              >
+                <RotateCcw size={15} /> Resetar
+              </button>
+            ) : (
+              <div className="confirm-inline">
+                <span>Apagar tudo?</span>
+                <button
+                  type="button"
+                  className="btn btn-danger-sm"
+                  onClick={() => {
+                    onReset();
+                    setConfirmReset(false);
+                  }}
+                >
+                  Confirmar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-sm"
+                  onClick={() => setConfirmReset(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
+          {importFeedback && <div className="toast-inline">{importFeedback}</div>}
+        </section>
+      </DashboardGroup>
     </div>
   );
 };

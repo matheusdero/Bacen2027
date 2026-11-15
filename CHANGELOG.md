@@ -1,12 +1,19 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.8] — 2026-11-15 · Ajuste Visual no Diagnóstico do Edital
+## [v1.3.9] — 2026-11-15 · Painel & Plano Organizado em 4 Grupos Temáticos por Cor
+- Tela **Painel & Plano** estruturada em 4 grupos distintos com cabeçalho próprio, faixa superior colorida, atalho rápido no hero e opção de recolher/expandir:
+  - **Grupo 01 (Azul):** Alvo Real & Régua Oficial 2024 + Insight Cebraspe lado a lado.
+  - **Grupo 02 (Esmeralda):** Frequência de Estudo Real & Curva de Evolução Temporal.
+  - **Grupo 03 (Âmbar):** Plano Semanal Adaptativo (0–4) & Fila de Ataque Imediato (Top 6).
+  - **Grupo 04 (Roxo):** Perfil do Candidato, Notas BCB 2024, Sincronização GitHub Gist & Backups JSON.
+
+## [v1.3.8] — 2026-11-15 · Ajuste Visual no Diagnóstico do Edital (`02ac0a8`)
 - Na aba **Evolução do Edital** (`Diagnóstico do Treinador Dentro do Edital`), o botão **`Revisar aula`** passou a ficar empilhado logo abaixo da pílula de percentual, eliminando o excesso de espaço em branco e dando mais área útil ao texto dos itens.
 
 ## [v1.3.7] — 2026-11-15 · Transição Suave com Desfoque Entre Telas & Modais (`34d64b4`)
