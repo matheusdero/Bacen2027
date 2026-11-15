@@ -169,6 +169,14 @@ export interface EvolutionMilestone {
   note?: string;
 }
 
+export interface StudyDayRecord {
+  date: string; // YYYY-MM-DD (local date)
+  activeSeconds: number;
+  interactions: number;
+  qualified: boolean;
+  qualifiedAt?: string;
+}
+
 export interface GitHubSyncConfig {
   token: string;
   gistId?: string;
@@ -202,5 +210,6 @@ export interface TrainerProfile {
   discursiveDrafts: Record<'P3' | 'P4', string>;
   editalProgress: Record<string, EditalItemProgress>;
   evolutionHistory: EvolutionMilestone[];
+  studyDays: Record<string, StudyDayRecord>;
   lastUpdatedAt?: string;
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   BookOpen,
+  CalendarCheck2,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -33,6 +34,7 @@ import { QUESTIONS_P2 } from './data/questionsP2';
 import { SYLLABUS_TOPICS } from './data/syllabus';
 import { useDisplayComfort } from './hooks/useDisplayComfort';
 import { useGitHubSync } from './hooks/useGitHubSync';
+import { useStudyActivityTracker } from './hooks/useStudyActivityTracker';
 import { useTrainerState } from './hooks/useTrainerState';
 import { SubjectId } from './types';
 
@@ -56,11 +58,17 @@ export const App: React.FC = () => {
     clearEditalItemProgress,
     addEvolutionMilestone,
     deleteEvolutionMilestone,
+    recordStudyHeartbeat,
     applyCloudProfile,
     exportProfileJson,
     importProfileJson,
     resetProgress,
   } = useTrainerState();
+
+  const { todayProgress, justQualifiedNotice, dismissQualifiedNotice } = useStudyActivityTracker({
+    studyDays: profile.studyDays,
+    onRecordHeartbeat: recordStudyHeartbeat,
+  });
 
   const {
     config: syncConfig,
@@ -378,6 +386,7 @@ export const App: React.FC = () => {
         {activeTab === 'dashboard' && (
           <TrainerDashboard
             profile={profile}
+            todayStudyProgress={todayProgress}
             allQuestions={allQuestions}
             syncStatus={syncStatus}
             githubLogin={syncConfig.githubLogin}
@@ -503,18 +512,37 @@ export const App: React.FC = () => {
         onClose={() => setVersionModalOpen(false)}
       />
 
-      {syncToast && (
-        <div className="sync-toast" role="status" aria-live="polite">
-          <CheckCircle2 size={15} />
-          <span>{syncToast}</span>
-          <button
-            type="button"
-            className="sync-toast-close"
-            onClick={dismissToast}
-            aria-label="Fechar notificação"
-          >
-            <X size={13} />
-          </button>
+      {(syncToast || justQualifiedNotice) && (
+        <div className="toast-stack">
+          {justQualifiedNotice && (
+            <div className="sync-toast study-qualified-toast" role="status" aria-live="polite">
+              <CalendarCheck2 size={15} />
+              <span>{justQualifiedNotice}</span>
+              <button
+                type="button"
+                className="sync-toast-close"
+                onClick={dismissQualifiedNotice}
+                aria-label="Fechar notificação de estudo"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          )}
+
+          {syncToast && (
+            <div className="sync-toast" role="status" aria-live="polite">
+              <CheckCircle2 size={15} />
+              <span>{syncToast}</span>
+              <button
+                type="button"
+                className="sync-toast-close"
+                onClick={dismissToast}
+                aria-label="Fechar notificação"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 

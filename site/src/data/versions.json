@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.2",
+    "id": "v1.3.3",
     "ref": "main",
+    "tag": "v1.3.3",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Frequência de Estudo Real & Calendário de Consistência",
+    "summary": "Contagem de dias de estudo efetivo com anti-ociosidade (mínimo de tempo ativo e interações reais), cálculo de sequência e calendário de 12 semanas sincronizado.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Validação anti-ociosidade: um dia só conta após 2 minutos de permanência ativa com a aba visível (pausa automática após 90s sem interação) e pelo menos 3 interações reais na área de estudo.",
+      "Painel 'Frequência de Estudo Real' na Visão Geral com total de dias validados, sequência atual, recorde, tempo ativo acumulado e barra em tempo real do progresso de hoje.",
+      "Calendário visual das últimas 12 semanas diferenciando acesso breve de dia validado e sincronização multi-dispositivo via GitHub Gist."
+    ]
+  },
+  {
+    "id": "v1.3.2",
+    "ref": "771d14e",
     "tag": "v1.3.2",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Detecção Multi-Dispositivo & Notificações de Sync",
     "summary": "Aviso automático quando outro aparelho salvou progresso mais recente no Gist, trava contra sobrescrita e notificações de sincronização.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Verificação automática ao abrir o site, ao voltar para a aba e a cada 90s para detectar se outro aparelho atualizou o Gist.",
       "Identificação de origem por aparelho (ex.: Mac · Chrome, iPhone · Safari, editável no modal) com comparativo Nuvem vs. Local e trava do auto-push até sincronizar.",

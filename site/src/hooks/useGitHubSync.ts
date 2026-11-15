@@ -46,10 +46,11 @@ export function isLocalProfileEmpty(profile: TrainerProfile): boolean {
   );
   const hasTopics = Object.values(profile.topicStatuses).some((s) => s !== 'nao_iniciado');
   const hasMilestones = (profile.evolutionHistory?.length ?? 0) > 0;
+  const hasQualifiedStudyDays = Object.values(profile.studyDays ?? {}).some((d) => d?.qualified);
   const hasDrafts =
     Boolean(profile.discursiveDrafts?.P3?.trim()) ||
     Boolean(profile.discursiveDrafts?.P4?.trim());
-  return !hasQuestions && !hasEdital && !hasTopics && !hasMilestones && !hasDrafts;
+  return !hasQuestions && !hasEdital && !hasTopics && !hasMilestones && !hasQualifiedStudyDays && !hasDrafts;
 }
 
 export interface PendingSyncConflict {

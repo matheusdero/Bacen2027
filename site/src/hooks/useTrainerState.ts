@@ -10,6 +10,7 @@ import {
   KnowledgeRating,
   QuestionAttempt,
   QuestionItem,
+  StudyDayRecord,
   SubjectId,
   SubjectMeta,
   SyllabusTopic,
@@ -55,6 +56,7 @@ export const DEFAULT_PROFILE: TrainerProfile = {
   },
   editalProgress: {},
   evolutionHistory: [],
+  studyDays: {},
   lastUpdatedAt: undefined,
 };
 
@@ -78,6 +80,95 @@ export function normalizeProfile(parsed: Partial<TrainerProfile>): TrainerProfil
     },
     editalProgress: parsed.editalProgress ?? {},
     evolutionHistory: Array.isArray(parsed.evolutionHistory) ? parsed.evolutionHistory : [],
+    studyDays: parsed.studyDays && typeof parsed.studyDays === 'object' ? parsed.studyDays : {},
+  };
+}
+
+export const MIN_STUDY_SECONDS = 120; // 2 minutos ativos na página
+export const MIN_STUDY_INTERACTIONS = 3; // mínimo de 3 interações reais
+
+export function getLocalDateKey(date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function addDaysToDateKey(dateKey: string, deltaDays: number): string {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dt = new Date(y, (m || 1) - 1, (d || 1) + deltaDays, 12, 0, 0);
+  return getLocalDateKey(dt);
+}
+
+export interface StudyDaysStats {
+  qualifiedDaysCount: number;
+  currentStreak: number;
+  longestStreak: number;
+  totalActiveSeconds: number;
+  last30DaysQualified: number;
+  todayRecord: StudyDayRecord;
+}
+
+export function computeStudyDaysStats(
+  studyDays: Record<string, StudyDayRecord> | undefined,
+  todayKey = getLocalDateKey()
+): StudyDaysStats {
+  const map = studyDays ?? {};
+  const qualifiedSet = new Set<string>();
+  let totalActiveSeconds = 0;
+
+  for (const [key, rec] of Object.entries(map)) {
+    if (!rec) continue;
+    totalActiveSeconds += Math.max(0, rec.activeSeconds || 0);
+    if (rec.qualified) {
+      qualifiedSet.add(key);
+    }
+  }
+
+  // Sequência atual (conta hoje se já validado, ou até ontem se hoje ainda está em andamento)
+  let currentStreak = 0;
+  let cursor = qualifiedSet.has(todayKey) ? todayKey : addDaysToDateKey(todayKey, -1);
+  while (qualifiedSet.has(cursor)) {
+    currentStreak += 1;
+    cursor = addDaysToDateKey(cursor, -1);
+  }
+
+  // Maior sequência histórica
+  const sortedDates = [...qualifiedSet].sort();
+  let longestStreak = 0;
+  let running = 0;
+  let prevKey: string | null = null;
+  for (const key of sortedDates) {
+    if (prevKey && addDaysToDateKey(prevKey, 1) === key) {
+      running += 1;
+    } else {
+      running = 1;
+    }
+    if (running > longestStreak) longestStreak = running;
+    prevKey = key;
+  }
+
+  // Últimos 30 dias
+  let last30DaysQualified = 0;
+  for (let i = 0; i < 30; i += 1) {
+    const dk = addDaysToDateKey(todayKey, -i);
+    if (qualifiedSet.has(dk)) last30DaysQualified += 1;
+  }
+
+  const todayRecord: StudyDayRecord = map[todayKey] ?? {
+    date: todayKey,
+    activeSeconds: 0,
+    interactions: 0,
+    qualified: false,
+  };
+
+  return {
+    qualifiedDaysCount: qualifiedSet.size,
+    currentStreak,
+    longestStreak,
+    totalActiveSeconds,
+    last30DaysQualified,
+    todayRecord,
   };
 }
 
@@ -1040,6 +1131,59 @@ export function useTrainerState() {
     []
   );
 
+  const recordStudyHeartbeat = useCallback(
+    (
+      dateKey: string,
+      activeSeconds: number,
+      interactions: number,
+      bumpCloudSync: boolean
+    ): boolean => {
+      let becameQualifiedNow = false;
+
+      const computeNextStudyDays = (prev: TrainerProfile): Record<string, StudyDayRecord> => {
+        const existing = prev.studyDays?.[dateKey];
+        const nextSeconds = Math.max(existing?.activeSeconds ?? 0, Math.round(activeSeconds));
+        const nextInteractions = Math.max(existing?.interactions ?? 0, Math.round(interactions));
+        const wasQualified = Boolean(existing?.qualified);
+        const nowQualified =
+          wasQualified ||
+          (nextSeconds >= MIN_STUDY_SECONDS && nextInteractions >= MIN_STUDY_INTERACTIONS);
+
+        if (!wasQualified && nowQualified) {
+          becameQualifiedNow = true;
+        }
+
+        const nextRecord: StudyDayRecord = {
+          date: dateKey,
+          activeSeconds: nextSeconds,
+          interactions: nextInteractions,
+          qualified: nowQualified,
+          qualifiedAt: existing?.qualifiedAt ?? (nowQualified ? new Date().toISOString() : undefined),
+        };
+
+        return {
+          ...(prev.studyDays ?? {}),
+          [dateKey]: nextRecord,
+        };
+      };
+
+      if (bumpCloudSync) {
+        commitMutation((prev) => ({
+          ...prev,
+          studyDays: computeNextStudyDays(prev),
+        }));
+      } else {
+        setProfile((prev) => ({
+          ...prev,
+          studyDays: computeNextStudyDays(prev),
+        }));
+      }
+
+      return becameQualifiedNow;
+    },
+    [commitMutation]
+  );
+
   const resetProgress = useCallback(() => {
     setProfile(DEFAULT_PROFILE);
     setLocalMutationSeq((n) => n + 1);
@@ -1067,6 +1211,7 @@ export function useTrainerState() {
     clearEditalItemProgress,
     addEvolutionMilestone,
     deleteEvolutionMilestone,
+    recordStudyHeartbeat,
     applyCloudProfile,
     exportProfileJson,
     importProfileJson,

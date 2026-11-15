@@ -37,14 +37,17 @@ import {
   EvolutionMilestone,
   KnowledgeRating,
   QuestionItem,
+  StudyDayRecord,
   SubjectId,
   SyncStateStatus,
   TrainerProfile,
 } from '../types';
 import { EvolutionTimelineCard } from './EvolutionTimelineCard';
+import { StudyConsistencyCard } from './StudyConsistencyCard';
 
 interface TrainerDashboardProps {
   profile: TrainerProfile;
+  todayStudyProgress: StudyDayRecord;
   allQuestions: QuestionItem[];
   syncStatus: SyncStateStatus;
   githubLogin?: string;
@@ -72,6 +75,7 @@ interface TrainerDashboardProps {
 
 export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   profile,
+  todayStudyProgress,
   allQuestions,
   syncStatus,
   githubLogin,
@@ -544,6 +548,12 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           </div>
         </section>
       </div>
+
+      {/* Frequência de Estudo Real (Dias Validados & Calendário) */}
+      <StudyConsistencyCard
+        studyDays={profile.studyDays}
+        todayProgress={todayStudyProgress}
+      />
 
       {/* Curva de Evolução Temporal & Marcos */}
       <EvolutionTimelineCard
