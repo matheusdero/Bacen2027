@@ -210,7 +210,7 @@ export const App: React.FC = () => {
                   {CURRENT_RELEASE.id}
                 </button>
               </div>
-              <div className="brand-sub">Cargo 1 · Economia e Finanças</div>
+              <div className="brand-sub">Auditor (ex-Analista) · Economia e Finanças</div>
             </div>
           </div>
 
@@ -480,9 +480,9 @@ export const App: React.FC = () => {
       <footer className="site-footer">
         <div className="site-footer-inner">
           <span>
-            Dados reais estruturados a partir dos Editais nº 1 a 10 e Provas P1/P2/P3/P4 do Concurso
-            Banco Central do Brasil 2024 (Cargo 1 — Economia e Finanças). Progresso salvo localmente e
-            sincronizável na nuvem via GitHub Gist Privado.
+            Concurso Bacen 2027 autorizado pela Portaria MGI nº 5.508/2026 (170 vagas, sendo 100 para
+            Auditor), estruturado sobre a base oficial dos Editais nº 1 a 10 e Provas P1/P2/P3/P4 de
+            2024 (Economia e Finanças). Progresso salvo localmente e sincronizável via GitHub Gist.
           </span>
           <button
             type="button"

@@ -7,11 +7,13 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
   Cloud,
   Compass,
   Download,
   FileSpreadsheet,
   Flame,
+  Landmark,
   ListChecks,
   RotateCcw,
   SlidersHorizontal,
@@ -22,6 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import {
+  BACEN_2027_AUTHORIZATION,
   EXAM_BENCHMARKS_2024,
   KNOWLEDGE_LEVEL_LABELS,
   SUBJECTS,
@@ -65,9 +68,10 @@ const DASHBOARD_GROUPS: DashboardGroupMeta[] = [
   {
     id: 'alvo',
     number: '01',
-    shortLabel: 'Alvo & Régua 2024',
-    title: 'Alvo Real & Régua Oficial 2024',
-    subtitle: 'Cortes reais do Edital nº 10 (Cargo 1) e leitura estratégica da regra Cebraspe (+1 / -0,50)',
+    shortLabel: 'Autorização 2027 & Régua',
+    title: 'Autorização Bacen 2027, Alvo Real & Régua 2024',
+    subtitle:
+      'Portaria MGI nº 5.508/2026 (170 vagas · 100 Auditor) + cortes reais do Edital nº 10/2024 e regra Cebraspe',
     tone: 'blue',
   },
   {
@@ -325,7 +329,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         <div className="coach-hero-top">
           <div>
             <span className="eyebrow">
-              Painel do Treinador · {EXAM_BENCHMARKS_2024.cargo}
+              Painel do Treinador · Concurso Autorizado (Portaria MGI nº 5.508/2026) · Auditor (ex-Analista)
             </span>
             <h1>Plano de Preparação Bacen 2027 — Engenharia Reversa da Prova 2024</h1>
             <p className="hero-subtitle">
@@ -333,6 +337,19 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               atual em cada disciplina. O plano recalcula automaticamente suas horas semanais
               pelo critério <strong>Peso Real na Prova × Lacuna de Conhecimento</strong>.
             </p>
+            <button
+              type="button"
+              className="hero-auth-strip"
+              onClick={() => jumpToGroup('alvo')}
+              title="Ver quadro completo de vagas e prazos da Portaria MGI nº 5.508/2026"
+            >
+              <Landmark size={14} />
+              <span>
+                <strong>Autorizado (DOU 03/07/2026):</strong> 100 vagas Auditor (170 BCB) · Edital até{' '}
+                <strong>{BACEN_2027_AUTHORIZATION.editalDeadlineLegal}</strong> · Mín. 2 meses até a
+                1ª prova
+              </span>
+            </button>
           </div>
           <div className="hero-actions">
             <button
@@ -422,13 +439,126 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         </nav>
       </section>
 
-      {/* GRUPO 01 — Alvo Real & Régua Oficial 2024 */}
+      {/* GRUPO 01 — Autorização 2027, Alvo Real & Régua Oficial 2024 */}
       <DashboardGroup
         meta={DASHBOARD_GROUPS[0]}
         icon={<Award size={14} />}
         collapsed={collapsedGroups.alvo}
         onToggle={() => toggleGroup('alvo')}
       >
+        <section className="card auth-2027-card">
+          <div className="card-header">
+            <h2>
+              <Landmark size={18} /> Autorização Oficial Bacen 2027 · Portaria MGI nº 5.508/2026
+            </h2>
+            <span className="badge badge-emerald">
+              DOU {BACEN_2027_AUTHORIZATION.publishedAt} · {BACEN_2027_AUTHORIZATION.totalVacancies} vagas imediatas
+            </span>
+          </div>
+
+          <div className="auth-timeline-grid">
+            <div className="auth-stat-tile highlight">
+              <div className="auth-stat-label">Auditor do BCB (ex-Analista · NS)</div>
+              <div className="auth-stat-value">
+                {BACEN_2027_AUTHORIZATION.auditorVacancies.total} vagas imediatas
+              </div>
+              <div className="auth-stat-meta">
+                {BACEN_2027_AUTHORIZATION.auditorVacancies.AC} AC ·{' '}
+                {BACEN_2027_AUTHORIZATION.auditorVacancies.negras} Negras ·{' '}
+                {BACEN_2027_AUTHORIZATION.auditorVacancies.pcd} PcD ·{' '}
+                {BACEN_2027_AUTHORIZATION.auditorVacancies.indigenas} Indíg. ·{' '}
+                {BACEN_2027_AUTHORIZATION.auditorVacancies.quilombolas} Quilomb.
+              </div>
+            </div>
+
+            <div className="auth-stat-tile">
+              <div className="auth-stat-label">Total Autorizado no BCB</div>
+              <div className="auth-stat-value">{BACEN_2027_AUTHORIZATION.totalVacancies} vagas</div>
+              <div className="auth-stat-meta">
+                100 Auditor (NS) · 50 Técnico (NI) · 20 Procurador (NS)
+              </div>
+            </div>
+
+            <div className="auth-stat-tile">
+              <div className="auth-stat-label">Prazo para Publicação do Edital</div>
+              <div className="auth-stat-value">
+                <Clock size={15} /> Até {BACEN_2027_AUTHORIZATION.editalDeadlineLegal}
+              </div>
+              <div className="auth-stat-meta">
+                6 meses da Portaria (Art. 4º) · Previsão BCB: até 30/12/2026
+              </div>
+            </div>
+
+            <div className="auth-stat-tile">
+              <div className="auth-stat-label">Intervalo Mínimo até a 1ª Prova</div>
+              <div className="auth-stat-value">Mín. 2 meses</div>
+              <div className="auth-stat-meta">
+                Após a publicação do edital (Art. 5º) · Provas projetadas em 2027
+              </div>
+            </div>
+          </div>
+
+          <div className="auth-table-wrap">
+            <table className="auth-quota-table" aria-label="Quadro oficial de vagas da Portaria MGI nº 5.508/2026">
+              <thead>
+                <tr>
+                  <th>Cargo Autorizado</th>
+                  <th>Nível</th>
+                  <th>Ampla (AC)</th>
+                  <th>Negras</th>
+                  <th>PcD</th>
+                  <th>Indígenas</th>
+                  <th>Quilombolas</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {BACEN_2027_AUTHORIZATION.roles.map((row) => (
+                  <tr key={row.id} className={row.highlight ? 'is-target-role' : undefined}>
+                    <td>
+                      <strong>{row.cargo}</strong>
+                      {row.formerName && <span className="auth-role-tag">{row.formerName}</span>}
+                    </td>
+                    <td>{row.escolaridade}</td>
+                    <td>{row.AC}</td>
+                    <td>{row.negras}</td>
+                    <td>{row.pcd}</td>
+                    <td>{row.indigenas}</td>
+                    <td>{row.quilombolas}</td>
+                    <td>
+                      <strong>{row.total}</strong>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>
+                    <strong>TOTAL GERAL (Portaria MGI nº 5.508/2026)</strong>
+                  </td>
+                  <td>—</td>
+                  <td>{BACEN_2027_AUTHORIZATION.totalsByQuota.AC}</td>
+                  <td>{BACEN_2027_AUTHORIZATION.totalsByQuota.negras}</td>
+                  <td>{BACEN_2027_AUTHORIZATION.totalsByQuota.pcd}</td>
+                  <td>{BACEN_2027_AUTHORIZATION.totalsByQuota.indigenas}</td>
+                  <td>{BACEN_2027_AUTHORIZATION.totalsByQuota.quilombolas}</td>
+                  <td>
+                    <strong>{BACEN_2027_AUTHORIZATION.totalsByQuota.total}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div className="auth-notes-list">
+            <p className="muted-note">
+              <strong>Ref. oficial:</strong> {BACEN_2027_AUTHORIZATION.douReference} (Processo nº{' '}
+              {BACEN_2027_AUTHORIZATION.processNumber}). {BACEN_2027_AUTHORIZATION.strategicNotes[0]}{' '}
+              {BACEN_2027_AUTHORIZATION.strategicNotes[1]}
+            </p>
+          </div>
+        </section>
+
         <section className="card">
           <div className="card-header">
             <h2>
@@ -834,16 +964,16 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             </label>
 
             <label className="field">
-              <span>Modalidade de concorrência</span>
+              <span>Modalidade de concorrência (corte 2024 · cota 2026/27)</span>
               <select
                 value={profile.targetTrack}
                 onChange={(e) =>
                   onUpdateField('targetTrack', e.target.value as 'AC' | 'PcD' | 'PP')
                 }
               >
-                <option value="AC">Ampla Concorrência (AC)</option>
-                <option value="PP">Pessoas Pretas / Pardas (PP)</option>
-                <option value="PcD">Pessoa com Deficiência (PcD)</option>
+                <option value="AC">Ampla Concorrência (AC · 65 vagas Auditor 2026)</option>
+                <option value="PP">Pessoas Negras / Cotas Étnico-Raciais (25+3+2 Auditor 2026 · PP 2024)</option>
+                <option value="PcD">Pessoa com Deficiência (PcD · 5 vagas Auditor 2026)</option>
               </select>
             </label>
 

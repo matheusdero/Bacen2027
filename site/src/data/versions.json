@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.10",
+    "id": "v1.3.11",
     "ref": "main",
+    "tag": "v1.3.11",
+    "date": "2026-11-15",
+    "edition": "Autorizado 2026 (Base 2024)",
+    "title": "Autorização Oficial Bacen 2027 (Portaria MGI nº 5.508/2026)",
+    "summary": "Inclusão dos dados oficiais da Portaria MGI nº 5.508/2026 no Painel & Plano, com as 170 vagas autorizadas no BCB (100 para Auditor, antigo Analista), reserva de cotas atualizada e prazos legais para edital e provas.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Novo bloco Autorização Oficial Bacen 2027 no Grupo 01 do Painel & Plano com quadro completo de vagas por cargo e cota (DOU Edição Extra nº 123-F, 03/07/2026).",
+      "Destaque para Auditor do BCB (ex-Analista): 100 vagas imediatas (65 AC · 25 Pessoas Negras · 5 PcD · 3 Indígenas · 2 Quilombolas), além de Técnico (50) e Procurador (20).",
+      "Prazos da Portaria integrados no Painel e no Hero: edital até 03/01/2027 (6 meses; previsão BCB até 30/12/2026) e mínimo de 2 meses até a 1ª prova."
+    ]
+  },
+  {
+    "id": "v1.3.10",
+    "ref": "2aa5f8e",
     "tag": "v1.3.10",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Correção de Colunas no Termômetro por Disciplina",
     "summary": "Ajuste do grid de disciplinas em Evolução do Edital > Termômetro por Disciplina para evitar 5 colunas espremidas e vazamento de texto em monitores grandes, distribuindo os cards em colunas amplas e equilibradas.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Remoção da regra que forçava 5 colunas estreitas em telas >= 1400px dentro de um bloco de meia largura, onde cada card ficava com ~115px e causava quebra/vazamento de texto.",
       "Grid ajustado com largura mínima de 240px por card (resultando em 2 colunas × 5 linhas em monitores grandes), preenchendo harmonicamente a altura ao lado do Diagnóstico do Treinador.",

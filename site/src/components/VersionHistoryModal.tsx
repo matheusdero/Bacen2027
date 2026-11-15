@@ -120,13 +120,15 @@ export const VersionHistoryModal: React.FC<VersionHistoryModalProps> = ({ isOpen
           <div className="version-edital-note">
             <GitBranch size={16} />
             <div>
-              <strong>Garantia Pré-Edital vs. Edital 2027</strong>
+              <strong>Autorização Bacen 2027 (Portaria MGI nº 5.508/2026) vs. Edital de Abertura</strong>
               <p>
                 Cada versão publicada fica registrada no repositório e as edições arquivadas são
                 compiladas em subrotas próprias (<code>/versions/&lt;versão&gt;/</code>) no mesmo
-                domínio. Quando sair o <strong>Edital 2027</strong>, esta base{' '}
-                <strong>Pré-Edital 2024</strong> permanecerá congelada e acessível aqui sem apagar
-                seu progresso local nem do GitHub Gist.
+                domínio. A autorização oficial já definiu <strong>170 vagas imediatas</strong>{' '}
+                (sendo <strong>100 para Auditor</strong>, ex-Analista) com edital previsto até o
+                fim de 2026 / limite em <strong>03/01/2027</strong>. Quando o edital de abertura for
+                publicado, esta base de referência <strong>2024</strong> permanecerá congelada e
+                acessível aqui sem apagar seu progresso local nem do GitHub Gist.
               </p>
             </div>
           </div>

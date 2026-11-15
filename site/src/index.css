@@ -5493,6 +5493,168 @@ textarea {
   }
 }
 
+/* ============================================================
+   Autorização Oficial Bacen 2027 (Portaria MGI nº 5.508/2026)
+   ============================================================ */
+.hero-auth-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.72rem;
+  padding: 0.44rem 0.78rem;
+  border-radius: 999px;
+  border: 1px solid rgba(5, 150, 105, 0.28);
+  background: var(--emerald-bg);
+  color: var(--emerald);
+  font: inherit;
+  font-size: 0.79rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.hero-auth-strip:hover {
+  transform: translateY(-1px);
+  border-color: var(--emerald);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-auth-strip svg {
+  flex-shrink: 0;
+}
+
+.auth-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.auth-stat-tile {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 0.82rem 0.92rem;
+  min-width: 0;
+}
+
+.auth-stat-tile.highlight {
+  background: var(--kpi-hi-bg);
+  border-color: var(--kpi-hi-border);
+}
+
+.auth-stat-label {
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-subtle);
+  margin-bottom: 0.28rem;
+}
+
+.auth-stat-value {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 1.06rem;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1.25;
+  margin-bottom: 0.28rem;
+}
+
+.auth-stat-meta {
+  font-size: 0.79rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.auth-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+}
+
+.auth-quota-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.auth-quota-table th,
+.auth-quota-table td {
+  padding: 0.62rem 0.78rem;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.auth-quota-table th:first-child,
+.auth-quota-table td:first-child {
+  text-align: left;
+  white-space: normal;
+  min-width: 210px;
+}
+
+.auth-quota-table thead th {
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.auth-quota-table tbody tr.is-target-role {
+  background: var(--surface-tint);
+}
+
+.auth-quota-table tfoot td {
+  background: var(--surface-alt);
+  border-bottom: none;
+  color: var(--navy);
+}
+
+.auth-role-tag {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.1rem 0.46rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary);
+  vertical-align: middle;
+}
+
+.auth-notes-list {
+  margin-top: 0.8rem;
+}
+
+.auth-notes-list .muted-note {
+  margin: 0;
+}
+
+@media (max-width: 1040px) {
+  .auth-timeline-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .auth-timeline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-auth-strip {
+    border-radius: 10px;
+  }
+}
+
 
 
 

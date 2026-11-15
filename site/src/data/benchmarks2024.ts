@@ -199,6 +199,92 @@ export const EXAM_BENCHMARKS_2024 = {
   },
 };
 
+export interface AuthorizedRoleRow {
+  id: 'auditor' | 'tecnico' | 'procurador';
+  cargo: string;
+  formerName?: string;
+  escolaridade: 'NS' | 'NI';
+  AC: number;
+  negras: number;
+  pcd: number;
+  indigenas: number;
+  quilombolas: number;
+  total: number;
+  highlight?: boolean;
+}
+
+export const BACEN_2027_AUTHORIZATION = {
+  portaria: 'Portaria MGI nº 5.508, de 3 de julho de 2026',
+  douReference: 'DOU Seção 1 — Edição Extra nº 123-F, de 03/07/2026, pág. 11',
+  processNumber: '18600.058600/2025-20',
+  publishedAt: '03/07/2026',
+  editalDeadlineLegal: '03/01/2027',
+  editalDeadlineRule: 'Até 6 meses da publicação da Portaria (Art. 4º)',
+  editalForecastBcb: 'Até 30/12/2026 (FAQ oficial BCB)',
+  minExamInterval: 'Mínimo de 2 meses entre edital e 1ª prova (Art. 5º)',
+  totalVacancies: 170,
+  auditorVacancies: {
+    cargo: 'Auditor do Banco Central do Brasil',
+    formerName: 'Antigo Analista do BCB',
+    escolaridade: 'Nível Superior (NS)',
+    total: 100,
+    AC: 65,
+    negras: 25,
+    pcd: 5,
+    indigenas: 3,
+    quilombolas: 2,
+  },
+  roles: [
+    {
+      id: 'auditor',
+      cargo: 'Auditor do Banco Central do Brasil',
+      formerName: 'antigo Analista (NS)',
+      escolaridade: 'NS',
+      AC: 65,
+      negras: 25,
+      pcd: 5,
+      indigenas: 3,
+      quilombolas: 2,
+      total: 100,
+      highlight: true,
+    },
+    {
+      id: 'tecnico',
+      cargo: 'Técnico do Banco Central do Brasil',
+      escolaridade: 'NI',
+      AC: 31,
+      negras: 13,
+      pcd: 3,
+      indigenas: 2,
+      quilombolas: 1,
+      total: 50,
+    },
+    {
+      id: 'procurador',
+      cargo: 'Procurador do Banco Central do Brasil',
+      escolaridade: 'NS',
+      AC: 13,
+      negras: 5,
+      pcd: 1,
+      indigenas: 1,
+      quilombolas: 0,
+      total: 20,
+    },
+  ] as AuthorizedRoleRow[],
+  totalsByQuota: {
+    AC: 109,
+    negras: 43,
+    pcd: 9,
+    indigenas: 6,
+    quilombolas: 3,
+    total: 170,
+  },
+  strategicNotes: [
+    'O cargo de Nível Superior passou a se chamar Auditor do Banco Central do Brasil (substituindo a nomenclatura Analista) e recebeu 100 vagas imediatas autorizadas — mesmo quantitativo total do concurso 2024 (quando houve 50 vagas para Economia e Finanças + 50 para TI).',
+    'A distribuição da Portaria já aplica a política atualizada de cotas federais (25% Pessoas Negras, 5% PcD, 3% Indígenas e 2% Quilombolas). O fracionamento por áreas/especialidades e eventual Cadastro Reserva serão definidos no edital de abertura.',
+  ],
+};
+
 export const KNOWLEDGE_LEVEL_LABELS: Record<number, { label: string; short: string; color: string }> = {
   0: { label: '0 · Nunca estudei / Sem base', short: 'Zero', color: '#dc2626' },
   1: { label: '1 · Base fraca (preciso de fundamentos)', short: 'Fraca', color: '#ea580c' },
