@@ -1,12 +1,16 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`, `v1.3.5`, `v1.3.6`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.5] — 2026-11-15 · Cabeçalho Minimalista, Logo Bacen & Avatar por Borda
+## [v1.3.6] — 2026-11-15 · Menu em Linha Única Adaptativa (`>= 980px`)
+- Aproveita o novo cabeçalho enxuto para manter o menu de abas na **mesma linha superior** em telas a partir de `980px` de largura (notebooks, monitores médios e navegadores com zoom).
+- Abaixo de `980px`, onde não há folga lateral suficiente, as abas descem automaticamente para uma segunda linha centralizada.
+
+## [v1.3.5] — 2026-11-15 · Cabeçalho Minimalista, Logo Bacen & Avatar por Borda (`c423581`)
 - Novo ícone SVG institucional do app (`favicon.svg`) usado simultaneamente como favicon do navegador e logo de **`BACEN 2027`**, removendo o subtítulo anterior e deixando a versão discreta.
 - Botão de conforto visual reduzido para ícone + percentual de brilho.
 - Perfil no topo substituído por avatar circular com as iniciais do usuário e borda colorida indicadora de sincronização (verde = sincronizado, âmbar = desatualizado, azul pulsante = sincronizando, vermelho = erro/conflito, neutro = local).

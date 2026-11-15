@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.5",
+    "id": "v1.3.6",
     "ref": "main",
+    "tag": "v1.3.6",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Menu em Linha Única Adaptativa (>= 980px)",
+    "summary": "Aproveitamento automático do cabeçalho mais enxuto para manter as abas de navegação na mesma linha superior em notebooks, monitores compactos ou com zoom (a partir de 980px), descendo apenas em telas menores.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Ponto de quebra do menu reduzido de 1240px para 980px graças ao cabeçalho minimalista.",
+      "Em monitores e notebooks com largura a partir de 980px (ou zoomed), as abas sobem e ficam centralizadas na mesma linha da logo e dos ícones.",
+      "Abaixo de 980px (tablets em retrato, janelas estreitas e celulares), o menu desce automaticamente para uma segunda linha centralizada."
+    ]
+  },
+  {
+    "id": "v1.3.5",
+    "ref": "c423581",
     "tag": "v1.3.5",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Cabeçalho Minimalista, Logo Bacen & Avatar por Borda",
     "summary": "Identidade visual minimalista na barra superior: ícone institucional como logo do app, título limpo 'BACEN 2027', controle de brilho apenas com ícone + percentual e avatar circular com borda indicadora de sincronização.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Ícone institucional do app (favicon e marca) usado como logo de 'BACEN 2027', removendo 'Treinador Pessoal' e tornando o indicador de versão discreto.",
       "Botão de tema/brilho reduzido para apenas o ícone atual e o percentual de brilho.",
