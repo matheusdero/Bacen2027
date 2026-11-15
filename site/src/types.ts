@@ -177,12 +177,14 @@ export interface GitHubSyncConfig {
   githubAvatarUrl?: string;
   autoSync: boolean;
   lastSyncedAt?: string;
+  deviceLabel?: string;
 }
 
 export type SyncStateStatus =
   | 'disconnected'
   | 'syncing'
   | 'synced'
+  | 'stale'
   | 'conflict'
   | 'error';
 

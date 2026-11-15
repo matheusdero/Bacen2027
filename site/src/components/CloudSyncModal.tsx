@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Laptop,
   RefreshCw,
   Upload,
   UserCheck,
@@ -29,11 +30,14 @@ interface CloudSyncModalProps {
   statusNote: string | null;
   errorMsg: string | null;
   pendingConflict: PendingSyncConflict | null;
+  lastCheckedAt: string | null;
   onConnect: (token: string, gistId?: string) => Promise<void>;
   onPull: () => Promise<boolean>;
   onPush: () => Promise<boolean>;
+  onCheckUpdates: () => Promise<boolean>;
   onResolveConflict: (choice: 'cloud' | 'local') => Promise<void>;
   onToggleAutoSync: (enabled: boolean) => void;
+  onUpdateDeviceLabel: (label: string) => void;
   onDisconnect: () => void;
 }
 
@@ -48,11 +52,14 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
   statusNote,
   errorMsg,
   pendingConflict,
+  lastCheckedAt,
   onConnect,
   onPull,
   onPush,
+  onCheckUpdates,
   onResolveConflict,
   onToggleAutoSync,
+  onUpdateDeviceLabel,
   onDisconnect,
 }) => {
   const [tokenInput, setTokenInput] = useState(config.token || '');
@@ -171,19 +178,37 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
             </div>
           )}
 
-          {/* Resolução de Conflito */}
+          {/* Resolução de Conflito ou Dispositivo Desatualizado */}
           {pendingConflict && (
             <div className="conflict-box">
               <h3>
-                <AlertTriangle size={17} /> Conflito encontrado: escolha qual versão manter
+                <AlertTriangle size={17} />{' '}
+                {status === 'stale'
+                  ? 'Este aparelho está desatualizado (há progresso mais recente na nuvem)'
+                  : 'Conflito encontrado: escolha qual versão manter'}
               </h3>
               <p className="muted-note">
-                Existe um backup na sua conta do GitHub e também dados já marcados neste
-                navegador. Escolha qual versão deve prevalecer:
+                {status === 'stale' ? (
+                  <>
+                    O backup no GitHub Gist foi atualizado
+                    {pendingConflict.remoteDeviceLabel ? (
+                      <>
+                        {' '}
+                        por <strong>{pendingConflict.remoteDeviceLabel}</strong>
+                      </>
+                    ) : (
+                      ' em outro aparelho'
+                    )}{' '}
+                    depois da última sincronização deste navegador. O envio automático está pausado
+                    para evitar sobrescrever seus avanços.
+                  </>
+                ) : (
+                  'Existe um backup na sua conta do GitHub e também dados já marcados neste navegador. Escolha qual versão deve prevalecer:'
+                )}
               </p>
               <div className="conflict-compare">
                 <div className="conflict-col">
-                  <strong>Este Aparelho (Local)</strong>
+                  <strong>Este Aparelho ({config.deviceLabel || 'Local'})</strong>
                   <ul>
                     <li>
                       Edital: {localCompletedCount}/{EDITAL_CHECKLIST.length} itens
@@ -203,12 +228,21 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
                     disabled={status === 'syncing'}
                     onClick={() => void onResolveConflict('local')}
                   >
-                    <Upload size={14} /> Enviar Local para Nuvem
+                    <Upload size={14} />{' '}
+                    {status === 'stale'
+                      ? 'Manter Este Aparelho (sobrescrever nuvem)'
+                      : 'Enviar Local para Nuvem'}
                   </button>
                 </div>
 
                 <div className="conflict-col conflict-col-remote">
-                  <strong>Nuvem (GitHub Gist)</strong>
+                  <strong>
+                    Nuvem (GitHub Gist
+                    {pendingConflict.remoteDeviceLabel
+                      ? ` · ${pendingConflict.remoteDeviceLabel}`
+                      : ''}
+                    )
+                  </strong>
                   <ul>
                     <li>
                       Edital: {pendingConflict.remoteCompletedCount}/{EDITAL_CHECKLIST.length} itens
@@ -243,6 +277,8 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
                     <strong>
                       {status === 'syncing'
                         ? 'Sincronizando...'
+                        : status === 'stale'
+                        ? 'Desatualizado (nuvem mais nova)'
                         : status === 'error'
                         ? 'Atenção no último sync'
                         : 'Conectado ao Gist Privado'}
@@ -257,6 +293,15 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
                         ? new Date(config.lastSyncedAt).toLocaleString('pt-BR')
                         : 'Ainda não sincronizado'}
                     </strong>
+                    {lastCheckedAt && (
+                      <div className="muted-note">
+                        Verificado às{' '}
+                        {new Date(lastCheckedAt).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -277,6 +322,19 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
                 </div>
               </div>
 
+              <label className="field">
+                <span>
+                  <Laptop size={13} /> Nome deste aparelho (aparece ao sincronizar em outros
+                  dispositivos)
+                </span>
+                <input
+                  type="text"
+                  value={config.deviceLabel || ''}
+                  onChange={(e) => onUpdateDeviceLabel(e.target.value)}
+                  placeholder="Ex.: MacBook Matheus, iPhone Safari..."
+                />
+              </label>
+
               <label className="toggle-pill">
                 <input
                   type="checkbox"
@@ -284,7 +342,8 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
                   onChange={(e) => onToggleAutoSync(e.target.checked)}
                 />
                 <span>
-                  Sincronizar automaticamente na nuvem (2,5s após marcar questão, edital ou marco)
+                  Sincronizar automaticamente (envia em 2,5s e verifica novos dados da nuvem ao
+                  abrir/focar a aba)
                 </span>
               </label>
 
@@ -305,6 +364,14 @@ export const CloudSyncModal: React.FC<CloudSyncModalProps> = ({
                   onClick={() => void onPull()}
                 >
                   <Download size={15} /> Puxar da Nuvem
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  disabled={status === 'syncing'}
+                  onClick={() => void onCheckUpdates()}
+                >
+                  <RefreshCw size={15} /> Verificar Nuvem
                 </button>
                 <button
                   type="button"

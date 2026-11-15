@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  AlertTriangle,
   BookOpen,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Cloud,
   CloudOff,
   Compass,
+  Download,
   FileEdit,
   History,
   LayoutDashboard,
@@ -13,6 +16,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Target,
+  X,
 } from 'lucide-react';
 import { CloudSyncModal } from './components/CloudSyncModal';
 import { DisplayComfortControl } from './components/DisplayComfortControl';
@@ -65,11 +69,18 @@ export const App: React.FC = () => {
     statusNote,
     errorMsg: syncErrorMsg,
     pendingConflict,
+    lastCheckedAt,
+    syncToast,
+    staleBannerMinimized,
+    setStaleBannerMinimized,
+    dismissToast,
     connectGitHub,
     pullFromCloud,
     pushToCloud,
+    checkForRemoteUpdates,
     resolveConflict,
     toggleAutoSync,
+    updateDeviceLabel,
     disconnectGitHub,
   } = useGitHubSync({
     profile,
@@ -280,6 +291,10 @@ export const App: React.FC = () => {
                     <>
                       <Cloud size={11} /> Gist OK
                     </>
+                  ) : syncStatus === 'stale' ? (
+                    <>
+                      <AlertTriangle size={11} /> Desatualizado
+                    </>
                   ) : syncStatus === 'conflict' ? (
                     'Conflito Sync'
                   ) : syncStatus === 'error' ? (
@@ -307,6 +322,59 @@ export const App: React.FC = () => {
       </header>
 
       <main className="main-container">
+        {(syncStatus === 'stale' || syncStatus === 'conflict') &&
+          pendingConflict &&
+          !staleBannerMinimized && (
+            <div className="sync-stale-banner" role="alert">
+              <div className="sync-stale-copy">
+                <strong>
+                  <AlertTriangle size={16} />{' '}
+                  {syncStatus === 'stale'
+                    ? 'Este aparelho não está na versão mais recente do seu estudo'
+                    : 'Conflito de sincronização detectado'}
+                </strong>
+                <span>
+                  {pendingConflict.remoteDeviceLabel ? (
+                    <>
+                      Salvo por <strong>{pendingConflict.remoteDeviceLabel}</strong> em{' '}
+                    </>
+                  ) : (
+                    'Último salvamento na nuvem em '
+                  )}
+                  {new Date(pendingConflict.remote.updatedAt).toLocaleString('pt-BR')} ·{' '}
+                  Nuvem: {pendingConflict.remoteQuestionsCount}/120 q. e{' '}
+                  {pendingConflict.remoteCompletedCount} edital (aqui: {answeredCount}/120 q. e{' '}
+                  {editalCompletedCount} edital).
+                </span>
+              </div>
+              <div className="sync-stale-actions">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary"
+                  onClick={() => void resolveConflict('cloud')}
+                >
+                  <Download size={14} /> Baixar Versão Mais Recente
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline"
+                  onClick={() => setSyncModalOpen(true)}
+                >
+                  Comparar / Opções
+                </button>
+                <button
+                  type="button"
+                  className="sync-stale-close"
+                  onClick={() => setStaleBannerMinimized(true)}
+                  aria-label="Minimizar aviso por enquanto"
+                  title="Minimizar aviso (o envio automático continua pausado para segurança)"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            </div>
+          )}
+
         {activeTab === 'dashboard' && (
           <TrainerDashboard
             profile={profile}
@@ -419,11 +487,14 @@ export const App: React.FC = () => {
         statusNote={statusNote}
         errorMsg={syncErrorMsg}
         pendingConflict={pendingConflict}
+        lastCheckedAt={lastCheckedAt}
         onConnect={connectGitHub}
         onPull={() => pullFromCloud(false)}
         onPush={() => pushToCloud()}
+        onCheckUpdates={() => checkForRemoteUpdates(true)}
         onResolveConflict={resolveConflict}
         onToggleAutoSync={toggleAutoSync}
+        onUpdateDeviceLabel={updateDeviceLabel}
         onDisconnect={disconnectGitHub}
       />
 
@@ -431,6 +502,21 @@ export const App: React.FC = () => {
         isOpen={versionModalOpen}
         onClose={() => setVersionModalOpen(false)}
       />
+
+      {syncToast && (
+        <div className="sync-toast" role="status" aria-live="polite">
+          <CheckCircle2 size={15} />
+          <span>{syncToast}</span>
+          <button
+            type="button"
+            className="sync-toast-close"
+            onClick={dismissToast}
+            aria-label="Fechar notificação"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
 
       <div className="comfort-warmth-overlay" aria-hidden="true" />
       <div className="comfort-dim-overlay" aria-hidden="true" />

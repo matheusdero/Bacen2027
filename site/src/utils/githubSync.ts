@@ -2,6 +2,49 @@ import { TrainerProfile } from '../types';
 
 export const GIST_FILENAME = 'bacen-2027-trainer-profile.json';
 const GIST_DESCRIPTION = 'Bacen 2027 — Treinador Pessoal (Progresso Sincronizado)';
+const DEVICE_ID_STORAGE_KEY = 'bacen2027_device_id_v1';
+
+export function getLocalDeviceId(): string {
+  try {
+    const existing = window.localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+    if (existing) return existing;
+    const generated = `dev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    window.localStorage.setItem(DEVICE_ID_STORAGE_KEY, generated);
+    return generated;
+  } catch {
+    return 'dev-ephemeral';
+  }
+}
+
+export function getDefaultDeviceLabel(): string {
+  if (typeof navigator === 'undefined') return 'Navegador';
+  const ua = navigator.userAgent || '';
+  const os = /iPhone/i.test(ua)
+    ? 'iPhone'
+    : /iPad/i.test(ua)
+    ? 'iPad'
+    : /Android/i.test(ua)
+    ? 'Android'
+    : /Macintosh|Mac OS X/i.test(ua)
+    ? 'Mac'
+    : /Windows/i.test(ua)
+    ? 'Windows'
+    : /Linux/i.test(ua)
+    ? 'Linux'
+    : 'Dispositivo';
+
+  const browser = /Edg\//i.test(ua)
+    ? 'Edge'
+    : /Chrome|CriOS/i.test(ua)
+    ? 'Chrome'
+    : /Firefox|FxiOS/i.test(ua)
+    ? 'Firefox'
+    : /Safari/i.test(ua)
+    ? 'Safari'
+    : 'Web';
+
+  return `${os} · ${browser}`;
+}
 
 export interface GitHubUserMeta {
   login: string;
@@ -13,6 +56,8 @@ export interface CloudEnvelope {
   schemaVersion: number;
   app: string;
   updatedAt: string;
+  sourceDeviceId?: string;
+  sourceDeviceLabel?: string;
   profile: Partial<TrainerProfile>;
 }
 
@@ -92,6 +137,7 @@ async function extractGistFileContent(file: RawGistFile, token: string): Promise
   }
   const rawRes = await fetch(file.raw_url, {
     headers: { Authorization: `Bearer ${token.trim()}` },
+    cache: 'no-store',
   });
   if (!rawRes.ok) {
     throw new Error(await parseErrorMessage(rawRes));
@@ -107,6 +153,8 @@ function parseEnvelope(rawText: string, fallbackUpdatedAt: string): CloudEnvelop
       schemaVersion: parsed.schemaVersion ?? 2,
       app: parsed.app ?? 'bacen-2027-treinador',
       updatedAt: parsed.updatedAt ?? fallbackUpdatedAt,
+      sourceDeviceId: parsed.sourceDeviceId,
+      sourceDeviceLabel: parsed.sourceDeviceLabel,
       profile: parsed.profile,
     };
   }
@@ -124,6 +172,7 @@ function parseEnvelope(rawText: string, fallbackUpdatedAt: string): CloudEnvelop
 export async function findExistingTrainerGist(token: string): Promise<string | null> {
   const res = await fetch('https://api.github.com/gists?per_page=100', {
     headers: buildHeaders(token),
+    cache: 'no-store',
   });
   if (!res.ok) {
     throw new Error(await parseErrorMessage(res));
@@ -145,6 +194,7 @@ export async function pullProfileFromGist(
 ): Promise<RemoteGistSnapshot> {
   const res = await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId.trim())}`, {
     headers: buildHeaders(token),
+    cache: 'no-store',
   });
   if (!res.ok) {
     throw new Error(await parseErrorMessage(res));
@@ -167,13 +217,16 @@ export async function pullProfileFromGist(
 export async function pushProfileToGist(
   token: string,
   profile: TrainerProfile,
-  existingGistId?: string
+  existingGistId?: string,
+  sourceDeviceLabel?: string
 ): Promise<{ gistId: string; gistUrl: string; updatedAt: string }> {
   const now = new Date().toISOString();
   const envelope: CloudEnvelope = {
     schemaVersion: 2,
     app: 'bacen-2027-treinador',
     updatedAt: now,
+    sourceDeviceId: getLocalDeviceId(),
+    sourceDeviceLabel: sourceDeviceLabel?.trim() || getDefaultDeviceLabel(),
     profile: {
       ...profile,
       lastUpdatedAt: now,

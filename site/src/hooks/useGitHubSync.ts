@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GitHubSyncConfig, SyncStateStatus, TrainerProfile } from '../types';
 import {
   findExistingTrainerGist,
+  getDefaultDeviceLabel,
   pullProfileFromGist,
   pushProfileToGist,
   RemoteGistSnapshot,
@@ -9,10 +10,13 @@ import {
 } from '../utils/githubSync';
 
 const SYNC_STORAGE_KEY = 'bacen_2027_github_sync_v1';
+const CHECK_COOLDOWN_MS = 20_000;
+const POLL_INTERVAL_MS = 90_000;
 
 const EMPTY_SYNC_CONFIG: GitHubSyncConfig = {
   token: '',
   autoSync: true,
+  deviceLabel: getDefaultDeviceLabel(),
 };
 
 function loadSyncConfig(): GitHubSyncConfig {
@@ -25,6 +29,10 @@ function loadSyncConfig(): GitHubSyncConfig {
       ...parsed,
       token: typeof parsed.token === 'string' ? parsed.token : '',
       autoSync: parsed.autoSync !== false,
+      deviceLabel:
+        typeof parsed.deviceLabel === 'string' && parsed.deviceLabel.trim()
+          ? parsed.deviceLabel
+          : getDefaultDeviceLabel(),
     };
   } catch {
     return EMPTY_SYNC_CONFIG;
@@ -49,6 +57,7 @@ export interface PendingSyncConflict {
   remoteCompletedCount: number;
   remoteQuestionsCount: number;
   remoteMilestonesCount: number;
+  remoteDeviceLabel?: string;
 }
 
 interface UseGitHubSyncArgs {
@@ -69,6 +78,9 @@ export function useGitHubSync({
   const [statusNote, setStatusNote] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [pendingConflict, setPendingConflict] = useState<PendingSyncConflict | null>(null);
+  const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  const [syncToast, setSyncToast] = useState<string | null>(null);
+  const [staleBannerMinimized, setStaleBannerMinimized] = useState(false);
 
   const profileRef = useRef(profile);
   profileRef.current = profile;
@@ -76,8 +88,43 @@ export function useGitHubSync({
   const configRef = useRef(config);
   configRef.current = config;
 
+  const statusRef = useRef(status);
+  statusRef.current = status;
+
+  const mutationSeqRef = useRef(localMutationSeq);
+  mutationSeqRef.current = localMutationSeq;
+
   const inFlightRef = useRef(false);
   const lastPushedSeqRef = useRef(0);
+  const lastCheckMsRef = useRef(0);
+  const toastTimerRef = useRef<number | null>(null);
+
+  const showToast = useCallback((message: string) => {
+    setSyncToast(message);
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => {
+      setSyncToast(null);
+      toastTimerRef.current = null;
+    }, 4200);
+  }, []);
+
+  const dismissToast = useCallback(() => {
+    setSyncToast(null);
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current !== null) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -101,38 +148,55 @@ export function useGitHubSync({
       remoteCompletedCount,
       remoteQuestionsCount,
       remoteMilestonesCount,
+      remoteDeviceLabel: snapshot.envelope.sourceDeviceLabel,
     };
   };
 
-  const pushToCloud = useCallback(async (explicitConfig?: GitHubSyncConfig) => {
-    const cfg = explicitConfig ?? configRef.current;
-    if (!cfg.token.trim()) return false;
-    if (inFlightRef.current) return false;
+  const pushToCloud = useCallback(
+    async (explicitConfig?: GitHubSyncConfig) => {
+      const cfg = explicitConfig ?? configRef.current;
+      if (!cfg.token.trim()) return false;
+      if (inFlightRef.current) return false;
 
-    inFlightRef.current = true;
-    setStatus('syncing');
-    setErrorMsg(null);
+      inFlightRef.current = true;
+      setStatus('syncing');
+      setErrorMsg(null);
 
-    try {
-      const res = await pushProfileToGist(cfg.token, profileRef.current, cfg.gistId);
-      setConfig((prev) => ({
-        ...prev,
-        gistId: res.gistId,
-        gistUrl: res.gistUrl,
-        lastSyncedAt: res.updatedAt,
-      }));
-      setStatus('synced');
-      setPendingConflict(null);
-      setStatusNote(`Nuvem atualizada às ${new Date(res.updatedAt).toLocaleTimeString('pt-BR')}`);
-      return true;
-    } catch (err) {
-      setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : 'Falha ao enviar para o Gist.');
-      return false;
-    } finally {
-      inFlightRef.current = false;
-    }
-  }, []);
+      try {
+        const res = await pushProfileToGist(
+          cfg.token,
+          profileRef.current,
+          cfg.gistId,
+          cfg.deviceLabel
+        );
+        lastPushedSeqRef.current = mutationSeqRef.current;
+        lastCheckMsRef.current = Date.now();
+        setConfig((prev) => ({
+          ...prev,
+          gistId: res.gistId,
+          gistUrl: res.gistUrl,
+          lastSyncedAt: res.updatedAt,
+        }));
+        setStatus('synced');
+        setPendingConflict(null);
+        setStaleBannerMinimized(false);
+        const timeStr = new Date(res.updatedAt).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        setStatusNote(`Nuvem atualizada às ${timeStr} (${cfg.deviceLabel || getDefaultDeviceLabel()})`);
+        showToast(`Sincronizado na nuvem · ${timeStr}`);
+        return true;
+      } catch (err) {
+        setStatus('error');
+        setErrorMsg(err instanceof Error ? err.message : 'Falha ao enviar para o Gist.');
+        return false;
+      } finally {
+        inFlightRef.current = false;
+      }
+    },
+    [showToast]
+  );
 
   const pullFromCloud = useCallback(
     async (silentIfMissing = false) => {
@@ -147,6 +211,9 @@ export function useGitHubSync({
       try {
         const snapshot = await pullProfileFromGist(cfg.token, cfg.gistId);
         onApplyCloudProfile(snapshot.envelope.profile);
+        lastPushedSeqRef.current = mutationSeqRef.current;
+        lastCheckMsRef.current = Date.now();
+        setLastCheckedAt(new Date().toISOString());
         setConfig((prev) => ({
           ...prev,
           gistUrl: snapshot.gistUrl,
@@ -154,9 +221,14 @@ export function useGitHubSync({
         }));
         setStatus('synced');
         setPendingConflict(null);
+        setStaleBannerMinimized(false);
+        const origin = snapshot.envelope.sourceDeviceLabel
+          ? ` de ${snapshot.envelope.sourceDeviceLabel}`
+          : '';
         setStatusNote(
-          `Baixado da nuvem (salvo em ${new Date(snapshot.updatedAt).toLocaleString('pt-BR')})`
+          `Baixado da nuvem${origin} (salvo em ${new Date(snapshot.updatedAt).toLocaleString('pt-BR')})`
         );
+        showToast(`Progresso atualizado da nuvem${origin}!`);
         return true;
       } catch (err) {
         if (!silentIfMissing) {
@@ -168,7 +240,72 @@ export function useGitHubSync({
         inFlightRef.current = false;
       }
     },
-    [onApplyCloudProfile]
+    [onApplyCloudProfile, showToast]
+  );
+
+  const checkForRemoteUpdates = useCallback(
+    async (force = false) => {
+      const cfg = configRef.current;
+      if (!cfg.token.trim() || !cfg.gistId) return false;
+      if (inFlightRef.current) return false;
+      if (!force && Date.now() - lastCheckMsRef.current < CHECK_COOLDOWN_MS) {
+        return false;
+      }
+
+      inFlightRef.current = true;
+      lastCheckMsRef.current = Date.now();
+
+      try {
+        const snapshot = await pullProfileFromGist(cfg.token, cfg.gistId);
+        const checkedIso = new Date().toISOString();
+        setLastCheckedAt(checkedIso);
+
+        const remoteMs = Date.parse(snapshot.updatedAt) || 0;
+        const localSyncMs = cfg.lastSyncedAt ? Date.parse(cfg.lastSyncedAt) || 0 : 0;
+
+        if (remoteMs > localSyncMs + 2000) {
+          const summary = summarizeRemote(snapshot);
+          const origin = summary.remoteDeviceLabel
+            ? ` por ${summary.remoteDeviceLabel}`
+            : ' em outro dispositivo';
+          setPendingConflict(summary);
+          setStatus('stale');
+          setStaleBannerMinimized(false);
+          setStatusNote(
+            `Versão mais recente encontrada na nuvem (salva${origin} em ${new Date(
+              snapshot.updatedAt
+            ).toLocaleString('pt-BR')}).`
+          );
+          if (force) {
+            showToast(`Atualização disponível${origin}!`);
+          }
+          return true;
+        }
+
+        if (statusRef.current === 'stale' || statusRef.current === 'error') {
+          setPendingConflict(null);
+          setStatus('synced');
+        }
+        if (force) {
+          setStatusNote(
+            `Tudo em dia com a nuvem (verificado às ${new Date().toLocaleTimeString('pt-BR')}).`
+          );
+          showToast('Este aparelho já está na versão mais recente!');
+        }
+        return false;
+      } catch (err) {
+        if (force) {
+          setStatus('error');
+          setErrorMsg(
+            err instanceof Error ? err.message : 'Não foi possível verificar o Gist agora.'
+          );
+        }
+        return false;
+      } finally {
+        inFlightRef.current = false;
+      }
+    },
+    [showToast]
   );
 
   const connectGitHub = useCallback(
@@ -185,9 +322,12 @@ export function useGitHubSync({
       try {
         const user = await verifyGitHubToken(token);
         const targetGistId = optionalGistId?.trim() || (await findExistingTrainerGist(token));
+        const deviceLabel = configRef.current.deviceLabel || getDefaultDeviceLabel();
 
         if (targetGistId) {
           const snapshot = await pullProfileFromGist(token, targetGistId);
+          lastCheckMsRef.current = Date.now();
+          setLastCheckedAt(new Date().toISOString());
           const baseCfg: GitHubSyncConfig = {
             token,
             gistId: snapshot.gistId,
@@ -196,16 +336,20 @@ export function useGitHubSync({
             githubAvatarUrl: user.avatarUrl,
             autoSync: configRef.current.autoSync,
             lastSyncedAt: snapshot.updatedAt,
+            deviceLabel,
           };
 
           if (isLocalProfileEmpty(profileRef.current)) {
             onApplyCloudProfile(snapshot.envelope.profile);
+            lastPushedSeqRef.current = mutationSeqRef.current;
             setConfig(baseCfg);
             setStatus('synced');
             setPendingConflict(null);
+            setStaleBannerMinimized(false);
             setStatusNote(
               `Conectado como @${user.login} e progresso restaurado do Gist privado!`
             );
+            showToast('Progresso restaurado do Gist privado!');
           } else {
             setConfig({
               ...baseCfg,
@@ -213,13 +357,21 @@ export function useGitHubSync({
             });
             setPendingConflict(summarizeRemote(snapshot));
             setStatus('conflict');
+            setStaleBannerMinimized(false);
             setStatusNote(
               `Encontramos progresso salvo no Gist de @${user.login} e também dados locais neste aparelho.`
             );
           }
         } else {
-          // Primeiro uso: cria um Gist privado automático com o perfil atual
-          const created = await pushProfileToGist(token, profileRef.current);
+          const created = await pushProfileToGist(
+            token,
+            profileRef.current,
+            undefined,
+            deviceLabel
+          );
+          lastPushedSeqRef.current = mutationSeqRef.current;
+          lastCheckMsRef.current = Date.now();
+          setLastCheckedAt(new Date().toISOString());
           setConfig({
             token,
             gistId: created.gistId,
@@ -228,19 +380,22 @@ export function useGitHubSync({
             githubAvatarUrl: user.avatarUrl,
             autoSync: configRef.current.autoSync,
             lastSyncedAt: created.updatedAt,
+            deviceLabel,
           });
           setStatus('synced');
           setPendingConflict(null);
+          setStaleBannerMinimized(false);
           setStatusNote(
             `Conectado como @${user.login}! Novo Gist privado criado para Matheus Torrente.`
           );
+          showToast('Novo Gist privado conectado!');
         }
       } catch (err) {
         setStatus('error');
         setErrorMsg(err instanceof Error ? err.message : 'Erro ao conectar com o GitHub.');
       }
     },
-    [onApplyCloudProfile]
+    [onApplyCloudProfile, showToast]
   );
 
   const resolveConflict = useCallback(
@@ -248,23 +403,31 @@ export function useGitHubSync({
       if (!pendingConflict) return;
       if (choice === 'cloud') {
         onApplyCloudProfile(pendingConflict.remote.envelope.profile);
+        lastPushedSeqRef.current = mutationSeqRef.current;
         setConfig((prev) => ({
           ...prev,
           lastSyncedAt: pendingConflict.remote.updatedAt,
         }));
         setPendingConflict(null);
+        setStaleBannerMinimized(false);
         setStatus('synced');
         setStatusNote('Progresso da nuvem aplicado neste aparelho.');
+        showToast('Progresso da nuvem aplicado!');
       } else {
         setPendingConflict(null);
+        setStaleBannerMinimized(false);
         await pushToCloud();
       }
     },
-    [onApplyCloudProfile, pendingConflict, pushToCloud]
+    [onApplyCloudProfile, pendingConflict, pushToCloud, showToast]
   );
 
   const toggleAutoSync = useCallback((enabled: boolean) => {
     setConfig((prev) => ({ ...prev, autoSync: enabled }));
+  }, []);
+
+  const updateDeviceLabel = useCallback((label: string) => {
+    setConfig((prev) => ({ ...prev, deviceLabel: label }));
   }, []);
 
   const disconnectGitHub = useCallback(() => {
@@ -273,18 +436,48 @@ export function useGitHubSync({
     setErrorMsg(null);
     setStatusNote(null);
     setPendingConflict(null);
+    setLastCheckedAt(null);
+    setStaleBannerMinimized(false);
+    dismissToast();
     try {
       window.localStorage.removeItem(SYNC_STORAGE_KEY);
     } catch {
       // ignora
     }
-  }, []);
+  }, [dismissToast]);
 
-  // Auto-push com debounce de 2.5s apenas quando houve mutação local real
+  // Checagem automática ao abrir o site, ao voltar para a aba e periodicamente (90s)
+  useEffect(() => {
+    if (!isConnected) return;
+
+    void checkForRemoteUpdates(false);
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void checkForRemoteUpdates(false);
+      }
+    };
+
+    window.addEventListener('focus', onFocusOrVisible);
+    document.addEventListener('visibilitychange', onFocusOrVisible);
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void checkForRemoteUpdates(false);
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      window.removeEventListener('focus', onFocusOrVisible);
+      document.removeEventListener('visibilitychange', onFocusOrVisible);
+      window.clearInterval(intervalId);
+    };
+  }, [checkForRemoteUpdates, isConnected]);
+
+  // Auto-push com debounce de 2.5s apenas quando houve mutação local real e o aparelho não está desatualizado
   useEffect(() => {
     if (!config.token.trim() || !config.gistId || !config.autoSync) return;
     if (localMutationSeq === 0 || localMutationSeq === lastPushedSeqRef.current) return;
-    if (status === 'conflict') return;
+    if (status === 'conflict' || status === 'stale') return;
 
     const timer = window.setTimeout(() => {
       lastPushedSeqRef.current = localMutationSeq;
@@ -301,11 +494,18 @@ export function useGitHubSync({
     statusNote,
     errorMsg,
     pendingConflict,
+    lastCheckedAt,
+    syncToast,
+    staleBannerMinimized,
+    setStaleBannerMinimized,
+    dismissToast,
     connectGitHub,
     pullFromCloud,
     pushToCloud,
+    checkForRemoteUpdates,
     resolveConflict,
     toggleAutoSync,
+    updateDeviceLabel,
     disconnectGitHub,
   };
 }

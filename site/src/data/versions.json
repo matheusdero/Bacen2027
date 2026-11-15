@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.1",
+    "id": "v1.3.2",
     "ref": "main",
+    "tag": "v1.3.2",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Detecção Multi-Dispositivo & Notificações de Sync",
+    "summary": "Aviso automático quando outro aparelho salvou progresso mais recente no Gist, trava contra sobrescrita e notificações de sincronização.",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Verificação automática ao abrir o site, ao voltar para a aba e a cada 90s para detectar se outro aparelho atualizou o Gist.",
+      "Identificação de origem por aparelho (ex.: Mac · Chrome, iPhone · Safari, editável no modal) com comparativo Nuvem vs. Local e trava do auto-push até sincronizar.",
+      "Banner de alerta 'Desatualizado' no topo + notificações discretas (toast) sempre que enviar ou baixar progresso da nuvem."
+    ]
+  },
+  {
+    "id": "v1.3.1",
+    "ref": "e927922",
     "tag": "v1.3.1",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Barra Superior Recolhível (Modo Foco)",
     "summary": "Recolhimento manual da barra de navegação superior para leitura e resolução de questões sem distrações.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Botão discreto de seta para cima no canto direito do cabeçalho para recolher manualmente a barra superior.",
       "Botão flutuante discreto ('Menu') no topo direito quando recolhida, para restaurar a navegação com 1 toque.",
