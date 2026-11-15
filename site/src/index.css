@@ -216,10 +216,9 @@ textarea {
   width: min(1520px, 100%);
   margin: 0 auto;
   padding: 0.65rem clamp(0.85rem, 2.2vw, 2rem);
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 0.65rem 1rem;
 }
 
@@ -228,6 +227,19 @@ textarea {
   align-items: center;
   gap: 0.7rem;
   min-width: 0;
+  justify-self: start;
+}
+
+.brand-block > div {
+  min-width: 0;
+}
+
+.top-nav-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  justify-self: end;
 }
 
 .brand-mark {
@@ -259,9 +271,13 @@ textarea {
 
 .nav-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
   align-items: center;
+  justify-content: safe center;
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.06);
   padding: 0.28rem;
   border-radius: 12px;
@@ -273,20 +289,52 @@ textarea {
   color: #dbeafe;
   border: 1px solid transparent;
   border-radius: 9px;
-  padding: 0.45rem 0.78rem;
+  padding: 0.48rem 0.62rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
+  justify-content: center;
+  gap: 0;
   cursor: pointer;
   font-size: 0.84rem;
   font-weight: 600;
   white-space: nowrap;
-  transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    padding 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.12s ease;
 }
 
-.nav-tab:hover {
+.nav-tab-icon {
+  flex-shrink: 0;
+}
+
+.nav-tab-expand {
+  display: inline-grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  margin-left: 0;
+  transition:
+    grid-template-columns 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.16s ease,
+    margin-left 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-tab-expand-inner {
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.nav-tab:hover,
+.nav-tab:focus-visible {
   background: rgba(255, 255, 255, 0.13);
   color: #ffffff;
+  padding: 0.46rem 0.78rem;
 }
 
 .nav-tab.active {
@@ -294,6 +342,15 @@ textarea {
   color: var(--navy);
   border-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 2px 8px rgba(7, 20, 38, 0.25);
+  padding: 0.46rem 0.82rem;
+}
+
+.nav-tab.active .nav-tab-expand,
+.nav-tab:hover .nav-tab-expand,
+.nav-tab:focus-visible .nav-tab-expand {
+  grid-template-columns: 1fr;
+  opacity: 1;
+  margin-left: 0.42rem;
 }
 
 .nav-counter {
@@ -3396,20 +3453,28 @@ textarea {
    Responsive Breakpoints: Large Monitors, Laptops/Small Monitors & Mobile
    ========================================================================== */
 
-@media (max-width: 1420px) {
+@media (max-width: 1239px) {
+  .top-nav-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
   .brand-block {
-    order: 1;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
   }
 
   .top-nav-actions {
-    order: 2;
-    margin-left: auto;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
   }
 
   .nav-tabs {
-    order: 3;
-    flex-basis: 100%;
-    justify-content: flex-start;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
   }
 }
 
@@ -3445,8 +3510,14 @@ textarea {
   }
 
   .nav-tab {
-    padding: 0.4rem 0.65rem;
+    padding: 0.44rem 0.56rem;
     font-size: 0.8rem;
+  }
+
+  .nav-tab.active,
+  .nav-tab:hover,
+  .nav-tab:focus-visible {
+    padding: 0.42rem 0.68rem;
   }
 
   .syllabus-layout {
@@ -3478,9 +3549,6 @@ textarea {
 /* Mobile & Compact Tablets (<= 820px): Swipeable Tab Strip + Card Tables */
 @media (max-width: 820px) {
   .top-nav-inner {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
     padding: 0.5rem 0.8rem 0.55rem;
     gap: 0.45rem 0.6rem;
   }
@@ -3500,7 +3568,10 @@ textarea {
     scrollbar-width: none;
     scroll-snap-type: x proximity;
     padding: 0.25rem;
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
+    justify-self: center;
+    justify-content: safe center;
   }
 
   .nav-tabs::-webkit-scrollbar {
@@ -3510,9 +3581,15 @@ textarea {
   .nav-tab {
     flex: 0 0 auto;
     scroll-snap-align: start;
-    padding: 0.46rem 0.72rem;
+    padding: 0.46rem 0.58rem;
     font-size: 0.81rem;
     min-height: 36px;
+  }
+
+  .nav-tab.active,
+  .nav-tab:hover,
+  .nav-tab:focus-visible {
+    padding: 0.46rem 0.72rem;
   }
 
   /* Transform Plan Table into Mobile Cards */
@@ -3823,6 +3900,35 @@ textarea {
   }
 }
 
+@media (max-width: 640px) {
+  .top-nav-inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 0.45rem;
+  }
+
+  .brand-block {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  .top-nav-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-tabs {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+  }
+}
+
 /* Extra Narrow Phones (<= 400px) */
 @media (max-width: 400px) {
   .brand-title {
@@ -3838,13 +3944,6 @@ textarea {
 /* ==========================================================================
    Display Comfort Control (Brilho Contínuo + Luz Quente + 4 Tons de Fundo)
    ========================================================================== */
-
-.top-nav-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
 
 .comfort-control-wrap {
   position: relative;

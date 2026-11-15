@@ -205,63 +205,67 @@ export const App: React.FC = () => {
           </div>
 
           <nav className="nav-tabs" aria-label="Navegação principal">
-            <button
-              type="button"
-              className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              <LayoutDashboard size={16} />
-              <span>Painel &amp; Plano</span>
-            </button>
-
-            <button
-              type="button"
-              className={`nav-tab ${activeTab === 'edital' ? 'active' : ''}`}
-              onClick={() => setActiveTab('edital')}
-            >
-              <ListChecks size={16} />
-              <span>Evolução do Edital</span>
-              <span className="nav-counter">
-                {editalCompletedCount}/{EDITAL_CHECKLIST.length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              className={`nav-tab ${activeTab === 'questions' ? 'active' : ''}`}
-              onClick={() => setActiveTab('questions')}
-            >
-              <Compass size={16} />
-              <span>Questões + Aulas</span>
-              <span className="nav-counter">{answeredCount}/120</span>
-            </button>
-
-            <button
-              type="button"
-              className={`nav-tab ${activeTab === 'syllabus' ? 'active' : ''}`}
-              onClick={() => setActiveTab('syllabus')}
-            >
-              <BookOpen size={16} />
-              <span>Todo o Conteúdo</span>
-            </button>
-
-            <button
-              type="button"
-              className={`nav-tab ${activeTab === 'discursivas' ? 'active' : ''}`}
-              onClick={() => setActiveTab('discursivas')}
-            >
-              <FileEdit size={16} />
-              <span>Discursivas P3/P4</span>
-            </button>
-
-            <button
-              type="button"
-              className={`nav-tab ${activeTab === 'simulator' ? 'active' : ''}`}
-              onClick={() => setActiveTab('simulator')}
-            >
-              <Target size={16} />
-              <span>Simulado 2024</span>
-            </button>
+            {(
+              [
+                {
+                  id: 'dashboard' as TabId,
+                  label: 'Painel & Plano',
+                  icon: <LayoutDashboard size={17} className="nav-tab-icon" />,
+                },
+                {
+                  id: 'edital' as TabId,
+                  label: 'Evolução do Edital',
+                  icon: <ListChecks size={17} className="nav-tab-icon" />,
+                  counter: `${editalCompletedCount}/${EDITAL_CHECKLIST.length}`,
+                },
+                {
+                  id: 'questions' as TabId,
+                  label: 'Questões + Aulas',
+                  icon: <Compass size={17} className="nav-tab-icon" />,
+                  counter: `${answeredCount}/120`,
+                },
+                {
+                  id: 'syllabus' as TabId,
+                  label: 'Todo o Conteúdo',
+                  icon: <BookOpen size={17} className="nav-tab-icon" />,
+                },
+                {
+                  id: 'discursivas' as TabId,
+                  label: 'Discursivas P3/P4',
+                  icon: <FileEdit size={17} className="nav-tab-icon" />,
+                },
+                {
+                  id: 'simulator' as TabId,
+                  label: 'Simulado 2024',
+                  icon: <Target size={17} className="nav-tab-icon" />,
+                },
+              ] satisfies Array<{
+                id: TabId;
+                label: string;
+                icon: React.ReactNode;
+                counter?: string;
+              }>
+            ).map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`nav-tab ${isActive ? 'active' : ''}`}
+                  onClick={() => setActiveTab(item.id)}
+                  aria-label={item.counter ? `${item.label} (${item.counter})` : item.label}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {item.icon}
+                  <span className="nav-tab-expand">
+                    <span className="nav-tab-expand-inner">
+                      <span>{item.label}</span>
+                      {item.counter && <span className="nav-counter">{item.counter}</span>}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
           </nav>
 
           <div className="top-nav-actions">

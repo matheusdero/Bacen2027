@@ -1,12 +1,16 @@
 # Changelog — Bacen 2027 · Plataforma do Treinador
 
-Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`).
+Todas as versões marcantes do sistema são registradas aqui e associadas a tags Git no repositório (`v1.0.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`, `v1.3.1`, `v1.3.2`, `v1.3.3`, `v1.3.4`).
 
 Quando uma versão é marcada com `"archive": true` em `site/src/data/versions.json`, o workflow do GitHub Pages compila e mantém essa versão viva em `/Bacen2027/versions/<id>/` em paralelo à versão atual na raiz `/Bacen2027/`, compartilhando o mesmo progresso salvo (`localStorage` + GitHub Gist).
 
 ---
 
-## [v1.3.3] — 2026-11-15 · Frequência de Estudo Real & Calendário de Consistência
+## [v1.3.4] — 2026-11-15 · Menu Superior Centralizado & Abas por Ícone com Hover
+- Centralização completa do menu de abas na barra superior em desktops, notebooks e dispositivos móveis.
+- Abas não selecionadas agora mostram apenas seus ícones, revelando o nome (e contadores de progresso) ao passar o mouse por cima; ao clicar, o nome permanece fixo na aba ativa.
+
+## [v1.3.3] — 2026-11-15 · Frequência de Estudo Real & Calendário de Consistência (`16319a5`)
 - Novo medidor anti-ociosidade: o dia só passa a contar como estudado após **2 minutos (`120s`) ativos** com a aba aberta e visível (pausa após `90s` sem atividade) somados a **pelo menos 3 interações reais** (cliques ou digitação na área de estudo/abas).
 - Card **Frequência de Estudo Real** na aba *Visão Geral* mostrando dias validados, sequência atual (`streak`), maior sequência, tempo ativo total e progresso ao vivo de validação do dia de hoje.
 - Mapa de calor/calendário de 12 semanas diferenciando acessos breves (amarelo claro) de dias validados e sessões de 30+ minutos, sincronizado entre dispositivos pelo GitHub Gist com notificação toast ao validar o dia.

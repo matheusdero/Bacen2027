@@ -1,14 +1,30 @@
 [
   {
-    "id": "v1.3.3",
+    "id": "v1.3.4",
     "ref": "main",
+    "tag": "v1.3.4",
+    "date": "2026-11-15",
+    "edition": "Pré-Edital (Base 2024)",
+    "title": "Menu Superior Centralizado & Abas por Ícone com Hover",
+    "summary": "Centralização geométrica da navegação superior em todas as telas e exibição compacta apenas por ícones nas abas inativas (revelando o nome ao passar o mouse ou selecionar).",
+    "isCurrent": true,
+    "archive": false,
+    "changes": [
+      "Centralização do conjunto de abas no cabeçalho tanto em monitores largos quanto em notebooks e tablets/celulares.",
+      "Abas não selecionadas exibem apenas os ícones por padrão, expandindo suavemente para mostrar o título (e contador) ao passar o mouse ou focar.",
+      "A aba ativa permanece expandida com ícone e nome visíveis para sinalizar a seção aberta."
+    ]
+  },
+  {
+    "id": "v1.3.3",
+    "ref": "16319a5",
     "tag": "v1.3.3",
     "date": "2026-11-15",
     "edition": "Pré-Edital (Base 2024)",
     "title": "Frequência de Estudo Real & Calendário de Consistência",
     "summary": "Contagem de dias de estudo efetivo com anti-ociosidade (mínimo de tempo ativo e interações reais), cálculo de sequência e calendário de 12 semanas sincronizado.",
-    "isCurrent": true,
-    "archive": false,
+    "isCurrent": false,
+    "archive": true,
     "changes": [
       "Validação anti-ociosidade: um dia só conta após 2 minutos de permanência ativa com a aba visível (pausa automática após 90s sem interação) e pelo menos 3 interações reais na área de estudo.",
       "Painel 'Frequência de Estudo Real' na Visão Geral com total de dias validados, sequência atual, recorde, tempo ativo acumulado e barra em tempo real do progresso de hoje.",
